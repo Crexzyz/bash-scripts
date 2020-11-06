@@ -1,38 +1,54 @@
-BEGIN {
-	typeIndex = 0
-
-	# Type P == Ports
-
-	if(type == "P")
+function showAll()
+{
+	if($3 == "udp")
 	{
-		targetPrefix = "dport="
-		offsetPrefix = "sport="
+		sourcePort = $8
+		destPort = $9
 	}
 	else
 	{
-		targetPrefix = "dst="
-		offsetPrefix = "src="	
+		sourcePort = $9
+		destPort = $10
 	}
+
+	data = sprintf("%s,%s,%d", substr(destCol, length("dst=") + 1), $3, substr(destPort, length("dport=") + 1))	
+}
+
+BEGIN {
+	typeIndex = 0
+	split(ips, srcIPs, ",")
 }
 
 {
+	if($3 == "udp")
+	{
+		sourceCol = $6
+		destCol = $7
+	}
+	else
+	{
+		sourceCol = $7
+		destCol = $8
+	}
+
+	srcIP = substr(sourceCol, length("src=") + 1)
+	
+
+	skip = 1;
+	for( i = 1; i <= length(srcIPs); ++i)
+	{
+		if(srcIP == srcIPs[i])
+			skip = 0
+	}
+
+	if(skip == 1)
+		next
+
 	if(type == "P")
-	{
-		offsetCol = $10
-		targetCol = $9
-	}
+		showAll()
 	else
-	{
-		offsetCol = $8
-		targetCol = $7	
-	}
+		data = substr(destCol, length("dst=") + 1)
 
-
-	if(startsWith(targetCol, offsetPrefix))
-		data = substr(offsetCol, length(targetPrefix) + 1)
-	else
-		data = substr(targetCol, length(targetPrefix) + 1)
-    
 	if(connections[data] == "")
 	{
 		typeData[typeIndex] = data;
@@ -44,11 +60,22 @@ BEGIN {
 		++connections[data]
 	}
 
+	# connections["192.168.13.1,tcp,80"]
 }
 
 END {
-	for(i = 0; i < typeIndex; ++i)
+	if(type == "P")
 	{
-		printf("%s\t%d\n", typeData[i], connections[typeData[i]], connections[typeData[i]] != 1 ? "s" : "")
+		for(i = 0; i < typeIndex; ++i)
+		{
+			split(typeData[i], resArr, ",")
+			printf("%s\t%s\t\t%d\t%d\n", resArr[1], resArr[2], resArr[3], connections[typeData[i]])
+		}
 	}
+	else
+	{
+		for(i = 0; i < typeIndex; ++i)
+			printf("%s\t%d\n", typeData[i], connections[typeData[i]])
+	}
+
 }

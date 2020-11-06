@@ -32,15 +32,29 @@ function main()
 function check_client()
 {
 	if [[ $1 = "P" ]]; then
-		printf 'Ports\tConnections\n'
+		printf 'Address\t\tProtocol\tPort\tConnections\n'
 	else
 		printf 'Address\t\tConnections\n'
 	fi
 
-	if [[ $LINES -gt 0 ]]; then
-		awk -v type=$1 -f Common.awk -f Client.awk nf_conntrack.txt | sort -nrk2 | head -$LINES
+	# Get local IPs splitted by commas
+	local localIPs=$(hostname -I)
+	localIPs=${localIPs// /,}
+
+	# TEMPORAL LOCALIP FOR TESTING
+	localIPs="192.168.13.1,192.168.15.1"
+
+	local sortType=""
+	if [[ $PORTS -eq 1 ]]; then
+		sortType=-nrk4
 	else
-		awk -v type=$1 -f Common.awk -f Client.awk nf_conntrack.txt | sort -nrk2
+		sortType=-nrk2
+	fi
+
+	if [[ $LINES -gt 0 ]]; then
+		awk -v type=$1 -v ips=$localIPs -f Common.awk -f Client.awk nf_conntrack.txt | sort $sortType | head -$LINES
+	else
+		awk -v type=$1 -v ips=$localIPs -f Common.awk -f Client.awk nf_conntrack.txt | sort $sortType
 	fi	
 }
 
