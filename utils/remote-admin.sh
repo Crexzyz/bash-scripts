@@ -3,7 +3,7 @@
 hosts=""
 password=""
 hostsFile=""
-components=( [Network]="" [Logs]="" [Hardware]="" )
+declare -A components=( [Network]="" [Logs]="" [Hardware]="" )
 delay=""
 
 function parseArguments()
@@ -98,6 +98,11 @@ function printHelp()
 
 function validateArgumentsData()
 {
+	if [[ $hosts = "" ]] && [[ ! -f "$hostsFile" ]]; then
+		echo "Error: no hosts defined" >&2
+		exit 1
+	fi
+
 	if [[ ! -f "$password" ]]; then
 		echo "Error: password file does not exist" >&2
 		exit 1
@@ -105,20 +110,49 @@ function validateArgumentsData()
 		password=$(cat $password)
 	fi
 
+	if [[ -f "$hostsFile" ]]; then
+		hosts="$hosts $(cat $hostsFile)"
+	fi
+
 	if [[ ${components[Network]} = "" ]] && [[ ${components[Logs]} = "" ]] && [[ ${components[Hardware]} = "" ]]; then
 		echo "Error: no component set to run" >&2
 		exit 1
 	fi
 
-	if [[ $hosts = "" ]] && [[ ! -f "$hosts_file" ]]; then
-		echo "Error: no hosts defined" >&2
-		exit 1
+	if [[ ! ${components[Hardware]} = "" ]] && [[ $delay = "" ]]; then
+		echo "Error: delay parameter is needed when running the hardware monitoring command" >&2
+   		exit 1
+	else
+		if [[ ! $delay = "" ]] && [[ ! $delay =~ ^[0-9]+$ ]]; then
+	   		echo "Error: delay value is not a number" >&2
+	   		exit 1
+		fi
+	fi
+}
+
+function askConfirmation()
+{
+	echo "Hosts:"$hosts
+
+	echo "Components:"
+	for component in "${!components[@]}"; 
+	do
+		if [[ ! ${components[$component]} = "" ]]; then
+			printf "\t%s %s\n" $component ${components[$component]}
+		fi
+	done
+
+	if [[ ! $delay = "" ]]; then
+		echo "Delay:" $delay
 	fi
 
-	if [[ ! $delay = "" ]] && [[ ! $delay =~ ^[0-9]+$ ]]; then
-   		echo "Error: delay value is not a number" >&2
-   		exit 1
-	fi
+	read -p "Is this ok? [y/n] " -n 1 -r
+	echo ""
+}
+
+function runCommands()
+{
+	echo "RUN"
 }
 
 function main()
@@ -128,6 +162,11 @@ function main()
 	else
 		parseArguments "$@"
 		validateArgumentsData
+		askConfirmation
+
+		if [[ $REPLY =~ ^[Yy]$ ]]; then
+			runCommands
+		fi
 	fi
 }
 
