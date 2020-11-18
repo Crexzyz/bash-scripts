@@ -4,7 +4,10 @@ hosts=""
 password=""
 hostsFile=""
 declare -A components=( [Network]="" [Logs]="" [Hardware]="" )
-delay=""
+delay="0"
+commands=""
+IDENTITY_FILE="/root/.ssh/id_rsa"
+declare -A commandsArr=( [0]="" [1]="" [2]="" [3]="" [4]="" )
 
 function parseArguments()
 {
@@ -150,9 +153,42 @@ function askConfirmation()
 	echo ""
 }
 
+function prepareCommands()
+{
+	local realCommand=""
+	local commandIndex=1
+	for component in "${!components[@]}"; 
+	do
+		if [[ $component = "Network" ]]; then
+			realCommand="/home/vadmin/scripts/network/Network.sh"
+		elif [[ $component = "Logs" ]]; then
+			realCommand="/home/vadmin/scripts/logs/Logs.sh"
+		elif [[ $component = "Hardware" ]]; then
+			realCommand="/home/vadmin/scripts/hardware/Hardware.sh"
+		fi
+
+		if [[ ! ${components[$component]} = "" ]]; then
+			commands="$commands sudo $realCommand ${components[$component]} & "
+		fi
+		realCommand=""
+	done
+}
+
 function runCommands()
 {
-	echo "RUN"
+	for host in $hosts; 
+	do
+		# echo "Connecting to $host"
+
+		# ssh -q -i $IDENTITY_FILE vadmin@$host exit > /dev/null 2>&1
+  #       if [[ $? -eq 255 ]]; then
+  #       	echo "Error: cannot connect to $host, skipping"
+  #       	continue
+  #       fi
+
+		echo "Running commands in $host"
+		echo running "ssh -i $IDENTITY_FILE vadmin@$host echo $password | $commands"
+	done
 }
 
 function main()
@@ -165,7 +201,10 @@ function main()
 		askConfirmation
 
 		if [[ $REPLY =~ ^[Yy]$ ]]; then
+			prepareCommands
 			runCommands
+
+			sleep $delay
 		fi
 	fi
 }
