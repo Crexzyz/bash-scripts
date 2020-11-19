@@ -19,9 +19,12 @@ function main()
 		awk -f dhcp.awk log_dhcp.txt
 	fi
 	if [[ $MAIL -eq 1 ]]; then
-		echo awk -f dhcp.awk log_dhcp.txt | mail -s "message subject" username@example.com
-		printf 'mandar correo\n'
+		isinstalled
+		awk -f dhcp.awk log_dhcp.txt > file.txt
+		enscript file.txt -o - | ps2pdf - output.pdf  | mail -s "message subject" user@mail.com
+		printf 'Mail sent\n'
 	fi
+
 
 }
 
@@ -85,6 +88,20 @@ function printHelp()
 	echo "Usage:" $1 "<context> [lines]"
 	echo "Context:"
 	printf "\t%s\n" "-m --mail: Prints connection information as a client machine"
+}
+
+
+function isinstalled {
+  if yum list installed ghostscript >/dev/null 2>&1; then
+    if yum list installed enscript >/dev/null 2>&1; then
+        true
+     else
+	yum install enscript -y
+     fi
+  else
+      	yum install ghostscript -y
+        yum install enscript -y
+  fi
 }
 
 
