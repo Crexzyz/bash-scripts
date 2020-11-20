@@ -5,6 +5,7 @@ SERVER=0
 FIREWALL=0
 LINES=0
 PORTS=0
+IP=""
 DESTINATION=0
 SOURCE=0
 
@@ -31,10 +32,10 @@ function main()
 		fi
 	fi
 	if [[ $FIREWALL -eq 1 ]]; then
-		if [[ $PORTS -eq 1 ]]; then
-			check_firewall P
+		if [[ $DESTINATION -eq 1 ]]; then
+			check_firewall D
 		else
-			check_firewall
+			check_firewall S			
 		fi
 	fi
 }
@@ -52,7 +53,7 @@ function check_client()
 	localIPs=${localIPs// /,}
 
 	# TEMPORAL LOCALIP FOR TESTING
-	localIPs="192.168.13.1,192.168.15.1"
+	localIPs="192.168.13.1,192.168.15.1,172.24.132.16"
 
 	local sortType=""
 	if [[ $PORTS -eq 1 ]]; then
@@ -96,42 +97,19 @@ function check_server()
 		awk -v type=$1 -v ips=$serverIPs -f Common.awk -f Server.awk nf_conntrack.txt | sort $sortType
 	fi	
 }
-
-function src_list()
-{
-	# Get local IPs splitted by commas
-	local dstIPs=$(hostname -I)
-	dstIPs=${drtIPs// /,}
-
-	# TEMPORAL LOCALIP FOR TESTING
-	dstIPs="172.24.132.16"
-
-	local sortType=""
-	if [[ $PORTS -eq 1 ]]; then
-		sortType=-nrk4
-	else
-		sortType=-nrk2
-	fi
-
-	if [[ $LINES -gt 0 ]]; then
-		awk -v type=$1 -v ips=$dstIPs -f Common.awk -f Firewall.awk nf_conntrack.txt | sort $sortType | head -$LINES
-	else
-		awk -v type=$1 -v ips=$dstIPs -f Common.awk -f Firewall.awk nf_conntrack.txt | sort $sortType
-	fi	
-}
-
 function check_firewall()
 {
-	if [[ $1 = "D" ]]; then
-		printf 'Address Dst\t\tProtocol\tPort\tConnections\n'
-		src_list
-	elif  [[ $1 = "S" ]]; then
-		printf 'Address Src\t\tProtocol\tPort\tConnections\n'
-	else
-		printf 'Address\t\tConnections\n'
-	fi
+	local sortType="-nrk4"
 
-	src_list
+	if [[ $1 = "S" ]]; then
+		printf 'Source Address\t\t%s\n-----------------------------------------------------\nConnect to\t\tProtocol\tPort\tConnections\n%s\n' $IP
+		awk -v type="S" -v ips=$IP -f Common.awk -f Client.awk nf_conntrack.txt | sort $sortType
+
+	else
+		printf 'Destination Address\t\t%s\n-----------------------------------------------------\nConnect to\t\tProtocol\tPort\tConnections\n%s\n' $IP
+		awk -v type="D" -v ips=$IP -f Common.awk -f Server.awk nf_conntrack.txt | sort $sortType
+
+	fi
 }
 
 function parseArguments()
@@ -153,21 +131,30 @@ function parseArguments()
   	    -p|--ports)
 	      PORTS=1
 	      shift
-	      ;;	    
-	    -d|--dst)
-	      DESTINATION=1
-	      shift
-	      ;;  
-  	    -o|--src)
+	      ;;
+	    --src)
 	      SOURCE=1
 	      shift
-	      ;;
+	      ;;	    
+	    --dst)
+	      DESTINATION=1
+	      shift
+	      ;;	    
 	    -l|--lines)
 	      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
 	        LINES=$2
 	        shift 2
 	      else
 	        echo "Error: Missing amount of lines for argument --lines" >&2
+	        exit 1
+	      fi
+	      ;;
+	     -i|--ip)
+		  if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+	        IP=$2
+	        shift 2
+	      else
+	        echo "Error: Missing IP Address" >&2
 	        exit 1
 	      fi
 	      ;;
@@ -193,6 +180,7 @@ function printHelp()
 	printf "\t%s\n" "-s --server: Prints connection information as a server machine"
 	printf "\t%s\n" "-f --firewall: Prints connection information as a firewall machine"
 	printf "\t%s\n" "-p --ports: Prints port information instead of IP addresses"
+	printf "\t%s\n" "-i --ip: IP addresses"
 	echo "Lines:"
 	printf "\t%s\n" "-l --lines N: Prints the top N lines"
 }

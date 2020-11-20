@@ -44,7 +44,7 @@ BEGIN {
 	if(skip == 1)
 		next
 
-	if(type == "P")
+	if(type == "P" || type == "S")
 		showAll()
 	else
 		data = substr(destCol, length("dst=") + 1)
@@ -70,6 +70,14 @@ END {
 		{
 			split(typeData[i], resArr, ",")
 			printf("%s\t%s\t\t%d\t%d\n", resArr[1], resArr[2], resArr[3], connections[typeData[i]])
+		}
+	}
+	else if(type == "S")
+	{
+		for(i = 0; i < typeIndex; ++i)
+		{
+			split(typeData[i], resArr, ",")
+			printf("%s\t\t%s\t\t%d\t%d\n", resArr[1], resArr[2], resArr[3], connections[typeData[i]])
 		}
 	}
 	else
