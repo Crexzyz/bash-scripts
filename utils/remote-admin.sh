@@ -41,12 +41,12 @@ function parseArguments()
 	      fi
 	      ;;
 	    -c|--component)
-	      if [ -n "$2" ] && [ ${2:0:1} != "-" ] && [ -n "$3" ] && [ ${3:0:1} != "-" ]; then
+	      if [ -n "$2" ] && [ ${2:0:1} != "-" ] && [ -n "$3" ] && [ ${3:0:1} == "{" ]; then
 	        if [[ ! $2 = "Network" ]] && [[ ! $2 = "Logs" ]] && [[ ! $2 = "Hardware" ]] ; then
 				echo "Error: unknown component ($2)"
 				exit 1
 			else
-				components[$2]=$3
+				components[$2]=$(echo $3 | sed "s/{//g;s/}//g")
 			fi
 	        shift 3
 	      else
@@ -94,9 +94,10 @@ function printHelp()
 	printf "\t%s\e[4m%s\e[24m\n\t\t%s\n" "-d --delay " "Seconds" "Sets time in seconds that the script will wait to retrieve the results of the scripts"
 	echo ""
 	echo "Examples:"
-	printf "\t%s\n" "$1 -h gestion02 -c Network \"-c -p -l 10\" -p pass.txt"
-	printf "\t%s\n" "$1 -f servers.txt -c Network \"-c -p -l 10\" -c Logs \"-a\" -p pass.txt"
-	printf "\t%s\n" "$1 -f servers.txt -c Hardware \"-c -r\" -d 10"
+	printf "\t%s\n" "$1 -h gestion02 -c Network '{-c -p -l 10}' -p pass.txt"
+	printf "\t%s\n" "$1 -f servers.txt -c Network '{-c -p -l 10}' -c Logs '{-a}' -p pass.txt"
+	printf "\t%s\n" "$1 -f servers.txt -c Hardware '{-c -r}' -d 10"
+	echo "Note that components' parameters must be enclosed between '{' and '}'"
 }
 
 function validateArgumentsData()
@@ -141,7 +142,7 @@ function askConfirmation()
 	for component in "${!components[@]}"; 
 	do
 		if [[ ! ${components[$component]} = "" ]]; then
-			printf "\t%s %s\n" $component ${components[$component]}
+			printf "\t" && echo $component ${components[$component]}
 		fi
 	done
 
