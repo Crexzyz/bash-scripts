@@ -8,6 +8,7 @@ PORTS=0
 IP=""
 DESTINATION=0
 SOURCE=0
+CONNTRACK_FILE="nf_conntrack.txt"
 
 function main()
 {
@@ -63,9 +64,9 @@ function check_client()
 	fi
 
 	if [[ $LINES -gt 0 ]]; then
-		awk -v type=$1 -v ips=$localIPs -f Common.awk -f Client.awk nf_conntrack.txt | sort $sortType | head -$LINES
+		awk -v type=$1 -v ips=$localIPs -f Common.awk -f Client.awk $CONNTRACK_FILE | sort $sortType | head -$LINES
 	else
-		awk -v type=$1 -v ips=$localIPs -f Common.awk -f Client.awk nf_conntrack.txt | sort $sortType
+		awk -v type=$1 -v ips=$localIPs -f Common.awk -f Client.awk $CONNTRACK_FILE | sort $sortType
 	fi	
 }
 
@@ -92,9 +93,9 @@ function check_server()
 	fi
 
 	if [[ $LINES -gt 0 ]]; then
-		awk -v type=$1 -v ips=$serverIPs -f Common.awk -f Server.awk nf_conntrack.txt | sort $sortType | head -$LINES
+		awk -v type=$1 -v ips=$serverIPs -f Common.awk -f Server.awk $CONNTRACK_FILE | sort $sortType | head -$LINES
 	else
-		awk -v type=$1 -v ips=$serverIPs -f Common.awk -f Server.awk nf_conntrack.txt | sort $sortType
+		awk -v type=$1 -v ips=$serverIPs -f Common.awk -f Server.awk $CONNTRACK_FILE | sort $sortType
 	fi	
 }
 function check_firewall()
@@ -103,11 +104,11 @@ function check_firewall()
 
 	if [[ $1 = "S" ]]; then
 		printf 'Source Address\t\t%s\n-----------------------------------------------------\nConnect to\t\tProtocol\tPort\tConnections\n%s\n' $IP
-		awk -v type="S" -v ips=$IP -f Common.awk -f Client.awk nf_conntrack.txt | sort $sortType
+		awk -v type="S" -v ips=$IP -f Common.awk -f Client.awk $CONNTRACK_FILE | sort $sortType
 
 	else
 		printf 'Destination Address\t\t%s\n-----------------------------------------------------\nConnect to\t\tProtocol\tPort\tConnections\n%s\n' $IP
-		awk -v type="D" -v ips=$IP -f Common.awk -f Server.awk nf_conntrack.txt | sort $sortType
+		awk -v type="D" -v ips=$IP -f Common.awk -f Server.awk $CONNTRACK_FILE | sort $sortType
 
 	fi
 }
