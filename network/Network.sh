@@ -8,7 +8,10 @@ PORTS=0
 IP=""
 DESTINATION=0
 SOURCE=0
-CONNTRACK_FILE="nf_conntrack.txt"
+CONNTRACK_FILE="nf_conntrack.txt" # Testing file
+#CONNTRACK_FILE="/proc/net/nf_conntrack" # Production file
+ABSPATH="." # Testing path (same directory)
+#ABSPATH="/home/vadmin/scripts/network" # Production path
 
 function main()
 {
@@ -26,6 +29,7 @@ function main()
 		fi
 	fi
 	if [[ $SERVER -eq 1 ]]; then
+		echo ""
 		if [[ $PORTS -eq 1 ]]; then
 			check_server P
 		else
@@ -44,9 +48,9 @@ function main()
 function check_client()
 {
 	if [[ $1 = "P" ]]; then
-		printf 'Address\t\tProtocol\tPort\tConnections\n'
+		printf 'Address\t\tProtocol\tPort\tConnections (Client)\n'
 	else
-		printf 'Address\t\tConnections\n'
+		printf 'Address\t\tConnections (Client)\n'
 	fi
 
 	# Get local IPs splitted by commas
@@ -64,18 +68,18 @@ function check_client()
 	fi
 
 	if [[ $LINES -gt 0 ]]; then
-		awk -v type=$1 -v ips=$localIPs -f Common.awk -f Client.awk $CONNTRACK_FILE | sort $sortType | head -$LINES
+		awk -v type=$1 -v ips=$localIPs -f $ABSPATH/Common.awk -f $ABSPATH/Client.awk $CONNTRACK_FILE | sort $sortType | head -$LINES
 	else
-		awk -v type=$1 -v ips=$localIPs -f Common.awk -f Client.awk $CONNTRACK_FILE | sort $sortType
+		awk -v type=$1 -v ips=$localIPs -f $ABSPATH/Common.awk -f $ABSPATH/Client.awk $CONNTRACK_FILE | sort $sortType
 	fi	
 }
 
 function check_server()
 {
 	if [[ $1 = "P" ]]; then
-		printf 'Address\t\tProtocol\tPort\tConnections\n'
+		printf 'Address\t\tProtocol\tPort\tConnections (Server)\n'
 	else
-		printf 'Address\t\tConnections\n'
+		printf 'Address\t\tConnections (Server)\n'
 	fi
 
 	# Get local IPs splitted by commas
@@ -93,9 +97,9 @@ function check_server()
 	fi
 
 	if [[ $LINES -gt 0 ]]; then
-		awk -v type=$1 -v ips=$serverIPs -f Common.awk -f Server.awk $CONNTRACK_FILE | sort $sortType | head -$LINES
+		awk -v type=$1 -v ips=$serverIPs -f $ABSPATH/Common.awk -f $ABSPATH/Server.awk $CONNTRACK_FILE | sort $sortType | head -$LINES
 	else
-		awk -v type=$1 -v ips=$serverIPs -f Common.awk -f Server.awk $CONNTRACK_FILE | sort $sortType
+		awk -v type=$1 -v ips=$serverIPs -f $ABSPATH/Common.awk -f $ABSPATH/Server.awk $CONNTRACK_FILE | sort $sortType
 	fi	
 }
 function check_firewall()
@@ -104,11 +108,11 @@ function check_firewall()
 
 	if [[ $1 = "S" ]]; then
 		printf 'Source Address\t\t%s\n-----------------------------------------------------\nConnect to\t\tProtocol\tPort\tConnections\n%s\n' $IP
-		awk -v type="S" -v ips=$IP -f Common.awk -f Client.awk $CONNTRACK_FILE | sort $sortType
+		awk -v type="S" -v ips=$IP -f $ABSPATH/Common.awk -f $ABSPATH/Client.awk $CONNTRACK_FILE | sort $sortType
 
 	else
 		printf 'Destination Address\t\t%s\n-----------------------------------------------------\nConnect to\t\tProtocol\tPort\tConnections\n%s\n' $IP
-		awk -v type="D" -v ips=$IP -f Common.awk -f Server.awk $CONNTRACK_FILE | sort $sortType
+		awk -v type="D" -v ips=$IP -f $ABSPATH/Common.awk -f $ABSPATH/Server.awk $CONNTRACK_FILE | sort $sortType
 
 	fi
 }
