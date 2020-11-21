@@ -19,8 +19,7 @@ function parseArguments()
 	  case "$1" in
 	    -p|--password)
 	      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
-	        password=$(cat $2)
-	        SUDO_RUN="echo $password | "'sudo -S -p ""'
+	        password=$2
 	        shift 2
 	      else
 	        echo "Error: Missing password file for argument $1" >&2
@@ -73,6 +72,9 @@ function checkFiles()
 	if [[ ! -f "$password" ]]; then
 		echo "Error: password file does not exist"
 		exit 1
+	else
+		password=$(cat $password)
+        SUDO_RUN="echo $password | "'sudo -S -p ""'
 	fi
 
 	if [[ $hosts = "" ]] && [[ ! -f "$hosts_file" ]]; then
