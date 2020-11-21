@@ -112,6 +112,7 @@ function validateArgumentsData()
 		exit 1
 	else
 		password=$(cat $password)
+		sudoRun="echo $password | sudo -S -p"
 	fi
 
 	if [[ -f "$hostsFile" ]]; then
@@ -188,7 +189,7 @@ function runCommands()
         fi
 
 		echo "Running commands in $host"
-		echo running "ssh -i $IDENTITY_FILE vadmin@$host echo $password | $commands"
+		ssh -i $IDENTITY_FILE vadmin@$host $sudoRun $commands
 	done
 }
 
@@ -198,7 +199,7 @@ function gatherData()
 	for host in $hosts;
 	do
 		mkdir -p temps/$host
-		scp -i $IDENTITY_FILE -r vadmin@$host:/home/vadmin/scripts/temps/*.log ./temps/$host
+		scp -i $IDENTITY_FILE vadmin@$host:/home/vadmin/scripts/temps/* ./temps/$host
 	done
 }
 
@@ -215,8 +216,10 @@ function main()
 			prepareCommands
 			runCommands
 
+			echo "Waiting $delay seconds for commands to stop"
 			sleep $delay
 
+			echo "Done. Copying files from hosts"
 			gatherData
 		fi
 	fi
