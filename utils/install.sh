@@ -8,7 +8,7 @@ SUDO_RUN="echo $password | "'sudo -S -p ""'
 IDENTITY_FILE="/root/.ssh/id_rsa"
 
 FOLDERS_CMDS="bash"
-FOLDERS_CMDS="$FOLDERS_CMDS && sudo mkdir -p /home/vadmin/scripts/network /home/vadmin/scripts/logs /home/vadmin/scripts/temps"
+FOLDERS_CMDS="$FOLDERS_CMDS && sudo mkdir -p /home/vadmin/scripts/ /home/vadmin/scripts/temps"
 FOLDERS_CMDS="$FOLDERS_CMDS && sudo chown vadmin:vadmin -R /home/vadmin"
 FOLDERS_CMDS="$FOLDERS_CMDS && sudo chmod 700 -R /home/vadmin"
 FOLDERS_CMDS="$FOLDERS_CMDS && exit"
@@ -105,8 +105,8 @@ function installScripts()
         echo "Copying files..."
 
         # Commented until the scripts are ready
-        scp -i $IDENTITY_FILE -r ../network/ vadmin@$host:/home/vadmin/scripts/network
-        scp -i $IDENTITY_FILE -r ../monitoring/ vadmin@$host:/home/vadmin/scripts/logs
+        scp -i $IDENTITY_FILE -r ../network/ vadmin@$host:/home/vadmin/scripts/
+        scp -i $IDENTITY_FILE -r ../monitoring/ vadmin@$host:/home/vadmin/scripts/
 	done
 }
 

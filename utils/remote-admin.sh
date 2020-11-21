@@ -194,10 +194,10 @@ function runCommands()
 
 function gatherData()
 {
-	mkdir temps
+	mkdir -p temps
 	for host in $hosts;
 	do
-		mkdir temps/$host
+		mkdir -p temps/$host
 		scp -i $IDENTITY_FILE -r vadmin@$host:/home/vadmin/scripts/temps/*.log ./temps/$host
 	done
 }
