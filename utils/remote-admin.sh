@@ -179,16 +179,26 @@ function runCommands()
 {
 	for host in $hosts; 
 	do
-		# echo "Connecting to $host"
+		echo "Connecting to $host"
 
-		# ssh -q -i $IDENTITY_FILE vadmin@$host exit > /dev/null 2>&1
-  #       if [[ $? -eq 255 ]]; then
-  #       	echo "Error: cannot connect to $host, skipping"
-  #       	continue
-  #       fi
+		ssh -q -i $IDENTITY_FILE vadmin@$host exit > /dev/null 2>&1
+        if [[ $? -eq 255 ]]; then
+        	echo "Error: cannot connect to $host, skipping"
+        	continue
+        fi
 
 		echo "Running commands in $host"
 		echo running "ssh -i $IDENTITY_FILE vadmin@$host echo $password | $commands"
+	done
+}
+
+function gatherData()
+{
+	mkdir temps
+	for host in $hosts;
+	do
+		mkdir temps/$host
+		scp -i $IDENTITY_FILE -r vadmin@$host:/home/vadmin/scripts/temps/*.log ./temps/$host
 	done
 }
 
@@ -206,6 +216,8 @@ function main()
 			runCommands
 
 			sleep $delay
+
+			gatherData
 		fi
 	fi
 }
