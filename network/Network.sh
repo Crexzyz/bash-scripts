@@ -24,6 +24,8 @@ function main()
 	if [[ $CLIENT -eq 1 ]]; then
 		if [[ $PORTS -eq 1 ]]; then
 			check_client P
+		elif [[ -z "$IP"  ]]; then
+			printf 'You must specify IP/IPs\n'
 		else
 			check_client
 		fi
@@ -32,6 +34,8 @@ function main()
 		echo ""
 		if [[ $PORTS -eq 1 ]]; then
 			check_server P
+		elif [[ -z "$IP"  ]]; then
+			printf 'You must specify IP/IPs\n'
 		else
 			check_server
 		fi
@@ -39,10 +43,21 @@ function main()
 	if [[ $FIREWALL -eq 1 ]]; then
 		if [[ $DESTINATION -eq 1 ]]; then
 			check_firewall D
+		elif [[ -z "$IP"  ]]; then
+			printf 'You must specify IP/IPs\n'
 		else
-			check_firewall S			
+			if [[ $DESTINATION -eq 1 ]] || [[ $SOURCE -eq 1 ]]; then
+				check_firewall S
+			else
+				printf 'You must specify src or dst\n'
+			fi
 		fi
 	fi
+
+	if [[ $CLIENT -eq 0 ]] && [[ $SERVER -eq 0 ]] && [[ $FIREWALL -eq 0 ]]; then
+			printHelp $0
+	fi
+
 }
 
 function check_client()
@@ -58,7 +73,7 @@ function check_client()
 	localIPs=${localIPs// /,}
 
 	# TEMPORAL LOCALIP FOR TESTING
-	localIPs="192.168.13.1,192.168.15.1,172.24.132.16"
+	# localIPs="192.168.13.1,192.168.15.1,172.24.132.16"
 
 	local sortType=""
 	if [[ $PORTS -eq 1 ]]; then
@@ -68,9 +83,9 @@ function check_client()
 	fi
 
 	if [[ $LINES -gt 0 ]]; then
-		awk -v type=$1 -v ips=$localIPs -f $ABSPATH/Common.awk -f $ABSPATH/Client.awk $CONNTRACK_FILE | sort $sortType | head -$LINES
+		awk -v type=$1 -v ips=$IP -f $ABSPATH/Common.awk -f $ABSPATH/Client.awk $CONNTRACK_FILE | sort $sortType | head -$LINES
 	else
-		awk -v type=$1 -v ips=$localIPs -f $ABSPATH/Common.awk -f $ABSPATH/Client.awk $CONNTRACK_FILE | sort $sortType
+		awk -v type=$1 -v ips=$IP -f $ABSPATH/Common.awk -f $ABSPATH/Client.awk $CONNTRACK_FILE | sort $sortType
 	fi	
 }
 
@@ -87,7 +102,7 @@ function check_server()
 	serverIPs=${serverIPs// /,}
 
 	# TEMPORAL LOCALIP FOR TESTING
-	serverIPs="172.24.132.16,192.168.13.30"
+	# serverIPs="172.24.132.16,192.168.13.30"
 
 	local sortType=""
 	if [[ $PORTS -eq 1 ]]; then
@@ -97,9 +112,9 @@ function check_server()
 	fi
 
 	if [[ $LINES -gt 0 ]]; then
-		awk -v type=$1 -v ips=$serverIPs -f $ABSPATH/Common.awk -f $ABSPATH/Server.awk $CONNTRACK_FILE | sort $sortType | head -$LINES
+		awk -v type=$1 -v ips=$IP -f $ABSPATH/Common.awk -f $ABSPATH/Server.awk $CONNTRACK_FILE | sort $sortType | head -$LINES
 	else
-		awk -v type=$1 -v ips=$serverIPs -f $ABSPATH/Common.awk -f $ABSPATH/Server.awk $CONNTRACK_FILE | sort $sortType
+		awk -v type=$1 -v ips=$IP -f $ABSPATH/Common.awk -f $ABSPATH/Server.awk $CONNTRACK_FILE | sort $sortType
 	fi	
 }
 function check_firewall()
@@ -144,22 +159,22 @@ function parseArguments()
 	    --dst)
 	      DESTINATION=1
 	      shift
-	      ;;	    
+	      ;;  
+	    -i|--ip)
+		  if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+	        IP=$2
+	        shift 2
+	      else
+	        echo "Error: Missing IP Address" >&2
+	        exit 1
+	      fi
+	      ;;	      
 	    -l|--lines)
 	      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
 	        LINES=$2
 	        shift 2
 	      else
 	        echo "Error: Missing amount of lines for argument --lines" >&2
-	        exit 1
-	      fi
-	      ;;
-	     -i|--ip)
-		  if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
-	        IP=$2
-	        shift 2
-	      else
-	        echo "Error: Missing IP Address" >&2
 	        exit 1
 	      fi
 	      ;;
@@ -183,9 +198,11 @@ function printHelp()
 	echo "Context:"
 	printf "\t%s\n" "-c --client: Prints connection information as a client machine"
 	printf "\t%s\n" "-s --server: Prints connection information as a server machine"
-	printf "\t%s\n" "-f --firewall: Prints connection information as a firewall machine"
 	printf "\t%s\n" "-p --ports: Prints port information instead of IP addresses"
+	printf "\t%s\n" "-f --firewall: Prints connection information as a firewall machine"
 	printf "\t%s\n" "-i --ip: IP addresses"
+	printf "\t%s\n" "--src: Soucer IP addresses"
+	printf "\t%s\n" "--dst: Destination IP addresses"
 	echo "Lines:"
 	printf "\t%s\n" "-l --lines N: Prints the top N lines"
 }

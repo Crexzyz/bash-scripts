@@ -1,8 +1,23 @@
-BEGIN {
-	typeIndex = 0
-	split(ips, dstIPs, ",")
+function showAll()
+{
+	if($3 == "udp")
+	{
+		sourcePort = $8
+		destPort = $9
+	}
+	else
+	{
+		sourcePort = $9
+		destPort = $10
+	}
+
+	data = sprintf("%s,%s,%d", substr(destCol, length("dst=") + 1), $3, substr(destPort, length("dport=") + 1))	
 }
 
+BEGIN {
+	typeIndex = 0
+	split(ips, srcIPs, ",")
+}
 {
 	if($3 == "udp")
 	{
@@ -15,19 +30,20 @@ BEGIN {
 		destCol = $8
 	}
 
-	dstIP = substr(destCol, length("src=") + 1)
+	srcIP = substr(sourceCol, length("src=") + 1)
+	
 
 	skip = 1;
-	for( i = 1; i <= length(dstIPs); ++i)
+	for( i = 1; i <= length(srcIPs); ++i)
 	{
-		if(dstIP == dstIPs[i])
+		if(srcIP == srcIPs[i])
 			skip = 0
 	}
 
 	if(skip == 1)
 		next
 
-	data = substr(sourceCol, length("dst=") + 1)
+	showAll()
 
 	if(connections[data] == "")
 	{
@@ -39,10 +55,15 @@ BEGIN {
 	{
 		++connections[data]
 	}
+
+	# connections["192.168.13.1,tcp,80"]
 }
 
 END {
+		for(i = 0; i < typeIndex; ++i)
+		{
+			split(typeData[i], resArr, ",")
+			printf("%s\t\t  %s\t\t%d\t  %d\n", resArr[1], resArr[2], resArr[3], connections[typeData[i]])
+		}
 
-	for(i = 0; i < typeIndex; ++i)
-		printf("%s\t%d\n", typeData[i], connections[typeData[i]])
 }
