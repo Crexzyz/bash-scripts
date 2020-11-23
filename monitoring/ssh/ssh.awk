@@ -1,9 +1,9 @@
 function check(ip, state, connections)
 {
 	if(state == "ACCEPTED")
-		printf("Enviar correo porque %s ha accedido con éxito %s veces\n", ip,connections)
+		printf("%s ha accedido con éxito %s veces\n", ip,connections)
 	else
-		printf("Enviar correo porque %s es sospechoso por tener %s intentos fallidos\n", ip,connections)
+		printf("ALERTA: Enviar correo porque %s es sospechoso por tener %s intentos fallidos\n", ip,connections)
 }
 
 BEGIN {
@@ -50,7 +50,6 @@ END {
 	for(i = 0; i < typeIndex; ++i)
 	{
 		split(typeData[i], resArr, ",")
-		#               printf("1. %s    2. %s    3. %s\n", resArr[1], resArr[2], connections[typeData[i]])
 		if (connections[typeData[i]] > 1)
 		{
 			check(resArr[1], resArr[2], connections[typeData[i]])

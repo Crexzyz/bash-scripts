@@ -1,31 +1,38 @@
 #!/bin/bash
 MAIL=0
 DETAILS=0
+HELP=0
+ABSPATH="." # Testing path (same directory)
+#ABSPATH="/home/vadmin/scripts/network" # Production path
 
 function main()
 {
+	parseArguments "$@"
 	if [[ $# -eq 0 ]]; then
-		printHelp $0
-	else
-		parseArguments "$@"
+		printf 'Command ran\n'
+		echo '    Date                MAC Address             Host            IP Address      State' > dhcp_report.txt
+		journalctl -u dhcpd -n 500 --no-pager > $ABSPATH/log_dhcp.txt
+		awk -f $ABSPATH/dhcp.awk $ABSPATH/log_dhcp.txt >> $ABSPATH/dhcp_report.txt
 	fi
 
+	if [[ $HELP -eq 1 ]]; then
+		printHelp $0
+	fi
 
 	if [[ $DETAILS -eq 1 ]]; then
 		hostname
 		printf '\tDate\t\tMAC Address\t\tHost\t\tIP Address\tState\n'
-
-		journalctl -u dhcpd -n 100 --no-pager > log_dhcp.txt
-		awk -f dhcp.awk log_dhcp.txt
+		journalctl -u dhcpd -n 500 --no-pager > $ABSPATH/log_dhcp.txt
+		awk -f $ABSPATH/dhcp.awk $ABSPATH/log_dhcp.txt
 	fi
+
 	if [[ $MAIL -eq 1 ]]; then
-		isinstalled
-		awk -f dhcp.awk log_dhcp.txt > file.txt
-		enscript file.txt -o - | ps2pdf - output.pdf  | mail -s "message subject" user@mail.com
-		printf 'Mail sent\n'
+		isInstalled
+		journalctl -u dhcpd -n 500 --no-pager > $ABSPATH/log_dhcp.txt
+		awk -f $ABSPATH/dhcp.awk $ABSPATH/log_dhcp.txt >> $ABSPATH/dhcp_report.txt
+		enscript $ABSPATH/dhcp_report.txt -o - | ps2pdf - $ABSPATH/dhcp_report.pdf  | mail -s "DHCP REPORT - VIRTUALCOLLABOARD" -a $ABSPATH/dhcp_report.pdf user@mail.com <<< $ABSPATH/dhcp_report.txt
+		printf 'Mail sent - PENDIENTE\n'
 	fi
-
-
 }
 
 function parseArguments()
@@ -40,35 +47,10 @@ function parseArguments()
 	      DETAILS=1
 	      shift
 	      ;;
-	    -s|--server)
-	      SERVER=1
+  	    -h|--help)
+	      HELP=1
 	      shift
-	      ;;
-	    -f|--firewall)
-	      FIREWALL=1
-	      shift
-	      ;;
-  	    -p|--ports)
-	      PORTS=1
-	      shift
-	      ;;	    
-	    -d|--dst)
-	      DESTINATION=1
-	      shift
-	      ;;  
-  	    -o|--src)
-	      SOURCE=1
-	      shift
-	      ;;
-	    -l|--lines)
-	      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
-	        LINES=$2
-	        shift 2
-	      else
-	        echo "Error: Missing amount of lines for argument --lines" >&2
-	        exit 1
-	      fi
-	      ;;
+	      ;;	      
 	    -*|--*=) # unsupported flags
 	      echo "Error: Unsupported flag $1" >&2
 	      exit 1
@@ -91,7 +73,7 @@ function printHelp()
 }
 
 
-function isinstalled {
+function isInstalled {
   if yum list installed ghostscript >/dev/null 2>&1; then
     if yum list installed enscript >/dev/null 2>&1; then
         true
