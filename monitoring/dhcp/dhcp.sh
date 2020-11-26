@@ -2,6 +2,8 @@
 MAIL=0
 DETAILS=0
 HELP=0
+LOGPATH="." # Testing path (same directory)
+#LOGPATH=/home/vadmin/scripts/temps
 ABSPATH="." # Testing path (same directory)
 #ABSPATH="/home/vadmin/scripts/network" # Production path
 
@@ -11,8 +13,8 @@ function main()
 	if [[ $# -eq 0 ]]; then
 		printf 'Command ran\n'
 		echo '    Date                MAC Address             Host            IP Address      State' > dhcp_report.txt
-		journalctl -u dhcpd -n 500 --no-pager > $ABSPATH/log_dhcp.txt
-		awk -f $ABSPATH/dhcp.awk $ABSPATH/log_dhcp.txt >> $ABSPATH/dhcp_report.txt
+		journalctl -u dhcpd -n 500 --no-pager > $LOGPATH/log_dhcp.txt
+		awk -f $ABSPATH/dhcp.awk $LOGPATH/log_dhcp.txt >> $LOGPATH/dhcp_report.txt
 	fi
 
 	if [[ $HELP -eq 1 ]]; then
@@ -22,15 +24,15 @@ function main()
 	if [[ $DETAILS -eq 1 ]]; then
 		hostname
 		printf '\tDate\t\tMAC Address\t\tHost\t\tIP Address\tState\n'
-		journalctl -u dhcpd -n 500 --no-pager > $ABSPATH/log_dhcp.txt
-		awk -f $ABSPATH/dhcp.awk $ABSPATH/log_dhcp.txt
+		journalctl -u dhcpd -n 500 --no-pager > $LOGPATH/log_dhcp.txt
+		awk -f $ABSPATH/dhcp.awk $LOGPATH/log_dhcp.txt
 	fi
 
 	if [[ $MAIL -eq 1 ]]; then
 		isInstalled
-		journalctl -u dhcpd -n 500 --no-pager > $ABSPATH/log_dhcp.txt
-		awk -f $ABSPATH/dhcp.awk $ABSPATH/log_dhcp.txt >> $ABSPATH/dhcp_report.txt
-		enscript $ABSPATH/dhcp_report.txt -o - | ps2pdf - $ABSPATH/dhcp_report.pdf  | mail -s "DHCP REPORT - VIRTUALCOLLABOARD" -a $ABSPATH/dhcp_report.pdf user@mail.com <<< $ABSPATH/dhcp_report.txt
+		journalctl -u dhcpd -n 500 --no-pager > $LOGPATH/log_dhcp.txt
+		awk -f $ABSPATH/dhcp.awk $LOGPATH/log_dhcp.txt >> $LOGPATH/dhcp_report.txt
+		enscript $LOGPATH/dhcp_report.txt -o - | ps2pdf - $LOGPATH/dhcp_report.pdf  | mail -s "DHCP REPORT - VIRTUALCOLLABOARD" -a $ABSPATH/dhcp_report.pdf user@mail.com <<< $ABSPATH/dhcp_report.txt
 		printf 'Mail sent - PENDIENTE\n'
 	fi
 }
@@ -70,6 +72,7 @@ function printHelp()
 	echo "Usage:" $1 "<context> [lines]"
 	echo "Context:"
 	printf "\t%s\n" "-m --mail: Prints connection information as a client machine"
+	printf "\t%s\n" "-d --details: Show report in terminal"
 }
 
 
