@@ -4,28 +4,17 @@ params=""
 hosts=""
 hosts_file=""
 password=""
-SUDO_RUN="echo $password | "'sudo -S -p ""'
 IDENTITY_FILE="/root/.ssh/id_rsa"
 
-FOLDERS_CMDS="bash"
-FOLDERS_CMDS="$FOLDERS_CMDS && sudo mkdir -p /home/vadmin/scripts/ /home/vadmin/scripts/temps"
-FOLDERS_CMDS="$FOLDERS_CMDS && sudo chown vadmin:vadmin -R /home/vadmin"
-FOLDERS_CMDS="$FOLDERS_CMDS && sudo chmod 700 -R /home/vadmin"
-FOLDERS_CMDS="$FOLDERS_CMDS && exit"
+folder_cmds="sudo mkdir -p /home/vadmin/scripts/ /home/vadmin/scripts/temps"
+folder_cmds="$folder_cmds && sudo chown vadmin:vadmin -R /home/vadmin"
+folder_cmds="$folder_cmds && sudo chmod 700 -R /home/vadmin"
+folder_cmds="$folder_cmds && exit"
 
 function parseArguments()
 {
 	while (( "$#" )); do
 	  case "$1" in
-	    -p|--password)
-	      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
-	        password=$2
-	        shift 2
-	      else
-	        echo "Error: Missing password file for argument $1" >&2
-	        exit 1
-	      fi
-	      ;;
   	    -h|--host)
 	      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
 	        hosts="${hosts} $2"
@@ -62,21 +51,12 @@ function printHelp()
 {
 	echo "Usage:" $1 "<password> <host | hosts>"
 	echo "Options:"
-	printf "\t%s\n\t\t%s\n" "-p --password <path to file>" "Sets the sudo password file that the script will use"
 	printf "\t%s\n\t\t%s\n" "-h --host <FQDN | Name>" "Sets a host to install the administration scripts, can be used multiple times"
 	printf "\t%s\n\t\t%s\n" "-f --file <path to file>" "Sets a host file to install the administration scripts to each host"
 }
 
 function checkFiles()
 {
-	if [[ ! -f "$password" ]]; then
-		echo "Error: password file does not exist"
-		exit 1
-	else
-		password=$(cat $password)
-        SUDO_RUN="echo $password | "'sudo -S -p ""'
-	fi
-
 	if [[ $hosts = "" ]] && [[ ! -f "$hosts_file" ]]; then
 		echo "Error: hosts file does not exist"
 		exit 1
@@ -100,7 +80,7 @@ function installScripts()
         fi
 
         echo "Creating folders..."
-        ssh -i $IDENTITY_FILE vadmin@$host "$SUDO_RUN $FOLDERS_CMDS"
+        ssh -i $IDENTITY_FILE vadmin@$host "$folder_cmds"
 
         echo "Copying files..."
 
