@@ -5,7 +5,8 @@ SERVER=0
 FIREWALL=0
 LINES=0
 PORTS=0
-IP=""
+IP=$(hostname -I)
+IP=${IP// /,}
 DESTINATION=0
 SOURCE=0
 CONNTRACK_FILE="nf_conntrack.txt" # Testing file
@@ -69,8 +70,6 @@ function check_client()
 	fi
 
 	# Get local IPs splitted by commas
-	local localIPs=$(hostname -I)
-	localIPs=${localIPs// /,}
 
 	# TEMPORAL LOCALIP FOR TESTING
 	# localIPs="192.168.13.1,192.168.15.1,172.24.132.16"
