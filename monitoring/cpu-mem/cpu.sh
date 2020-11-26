@@ -4,6 +4,7 @@ TIMES=0
 TNUM=3
 HELP=0
 MAIL=0
+DISK=0
 DETAILS=0
 ABSPATH="." # Testing path (same directory)
 #ABSPATH="/home/vadmin/scripts/network" # Production path
@@ -11,41 +12,63 @@ ABSPATH="." # Testing path (same directory)
 function main()
 {
 	parseArguments "$@"
-	rm -f $ABSPATH/log_top.txt $ABSPATH/monitor_report.txt
+	rm -f $ABSPATH/log_top.txt $ABSPATH/monitor_report.txt $ABSPATH/iotop_report.txt
 
 	local sortType=""
 	if [[ $SORT -eq 1 ]]; then
-		sortType=-nrk2
-	elif [[ $SORT -eq 2 ]]; then
-		sortType=-nrk3
-	elif [[ $SORT -eq 3 ]]; then
-		sortType=-nrk4
-	elif [[ $SORT -eq 4 ]]; then
-		sortType=-nrk5
-	else
 		sortType=-nrk1
+	elif [[ $SORT -eq 2 ]]; then
+		sortType=-nrk2
+	elif [[ $SORT -eq 3 ]]; then
+		sortType=-nrk3
+	elif [[ $SORT -eq 4 ]]; then
+		sortType=-nrk4
+	elif [[ $SORT -eq 5 ]]; then
+		sortType=-nrk5
+	elif [[ $SORT -eq 6 ]]; then
+		sortType=-nrk6
+	elif [[ $SORT -eq 7 ]]; then
+		sortType=-nrk7
 	fi
 
 	if [[ $HELP -eq 1 ]]; then
 		printHelp $0
-	elif [[ $MAIL -eq 0 ]] && [[ $DETAILS -eq 0 ]]; then
+	elif [[ $MAIL -eq 0 ]] && [[ $DETAILS -eq 0 ]] && [[ $DISK -eq 0 ]]; then
 		hostname
-		top -b -d 5 -n 3 >> $ABSPATH/log_top.txt
+		top -b -d 5 -n 2 >> $ABSPATH/log_top.txt
 		printf 'Command stared\n'
 		echo "Process ID     AVG CPU       DESV STD CPU       |       AVG MEM           DESV STD MEM  |" > $ABSPATH/monitor_report.txt
 		awk -f $ABSPATH/cpu.awk $ABSPATH/log_top.txt | sort $sortType >> $ABSPATH/monitor_report.txt
 		printf 'Command finished\n'
 	elif [[ $DETAILS -eq 1 ]]; then
-		printf "Process ID\tAVG CPU\t\tDESV STD CPU\t|\tAVG MEM\t\tDESV STD MEM\t|\n"
-		top -b -d 5 -n 3 >> $ABSPATH/log_top.txt
-		awk -f $ABSPATH/cpu.awk $ABSPATH/log_top.txt | sort $sortType 
+		if [[ $DISK -eq 1 ]] ; then
+	        printf "Process ID\tAVG READ\tDESV STD READ\t|\tAVG WRITE\tDESV STD WRITE\t|\tAVG IO\t\tDESV STD IO\t|\n"
+			iotop -b -d 5 -n 3 > $ABSPATH/log_iotop.txt
+			awk -f $ABSPATH/disk.awk $ABSPATH/log_iotop.txt | sort $sortType
+		else
+			printf "Process ID\tAVG CPU\t\tDESV STD CPU\t|\tAVG MEM\t\tDESV STD MEM\t|\n"
+			iotop -b -d 5 -n 3 > $ABSPATH/log_iotop.txt
+			awk -f $ABSPATH/cpu.awk $ABSPATH/log_top.txt | sort $sortType 
+		fi
+	elif [[ $DISK -eq 1 ]]; then
+        printf "Process ID\tAVG READ\tDESV STD READ\t|\tAVG WRITE\tDESV STD WRITE\t|\tAVG IO\t\tDESV STD IO\t|\n" > $ABSPATH/iotop_report.txt
+		iotop -b -d 5 -n 3 >> $ABSPATH/log_iotop.txt
+		awk -f $ABSPATH/disk.awk $ABSPATH/log_iotop.txt | sort $sortType >> $ABSPATH/iotop_report.txt
 	elif [[ $MAIL -eq 1 ]]; then
 		isInstalled
-		echo "Process ID     AVG CPU       DESV STD CPU       |       AVG MEM           DESV STD MEM  |" > $ABSPATH/monitor_report.txt
-		top -b -d 5 -n 3 >> $ABSPATH/log_top.txt
-		awk -f $ABSPATH/cpu.awk $ABSPATH/log_top.txt | sort $sortType >> $ABSPATH/monitor_report.txt
-		enscript $ABSPATH/monitor_report.txt -o - | ps2pdf - $ABSPATH/monitor_report.pdf | mail -s "SSH REPORT - VIRTUALCOLLABOARD" -a $ABSPATH/monitor_report.pdf user@mail.com <<< $ABSPATH/monitor_report.txt
-		printf 'Mail sent - PENDIENTE\n'
+		if [[ $DISK -eq 1 ]] ; then
+	        printf "Process ID\tAVG READ\tDESV STD READ\t|\tAVG WRITE\tDESV STD WRITE\t|\tAVG IO\t\tDESV STD IO\t|\n" > $ABSPATH/iotop_report.txt
+			iotop -b -d 5 -n 3 >> $ABSPATH/log_iotop.txt
+			awk -f $ABSPATH/disk.awk $ABSPATH/log_iotop.txt | sort $sortType >> $ABSPATH/iotop_report.txt
+			enscript $ABSPATH/iotop_report.txt -o - | ps2pdf - $ABSPATH/iotop_report.pdf | mail -s "DISK REPORT - VIRTUALCOLLABOARD" -a $ABSPATH/iotop_report.pdf user@mail.com <<< $ABSPATH/iotop_report.txt
+			printf 'Mail sent - PENDIENTE\n'
+		else
+			echo "Process ID     AVG CPU       DESV STD CPU       |       AVG MEM           DESV STD MEM  |" > $ABSPATH/monitor_report.txt
+			top -b -d 5 -n 3 >> $ABSPATH/log_top.txt
+			awk -f $ABSPATH/cpu.awk $ABSPATH/log_top.txt | sort $sortType >> $ABSPATH/monitor_report.txt
+			enscript $ABSPATH/monitor_report.txt -o - | ps2pdf - $ABSPATH/monitor_report.pdf | mail -s "SSH REPORT - VIRTUALCOLLABOARD" -a $ABSPATH/monitor_report.pdf user@mail.com <<< $ABSPATH/monitor_report.txt
+			printf 'Mail sent - PENDIENTE\n'
+		fi
 	fi
 }
 
@@ -56,9 +79,13 @@ function parseArguments()
 	    -m|--mail)
 	      MAIL=1
 	      shift
-	      ;;
+	      ;;	      
   	    -d|--details)
 	      DETAILS=1
+	      shift
+	      ;;
+  	    --disk)
+	      DISK=1
 	      shift
 	      ;;
   	    -h|--help)
@@ -106,8 +133,9 @@ function printHelp()
 	echo "Context:"
 	printf "\t%s\n" "-d --details: Show report in terminal"
 	printf "\t%s\n" "-m --mail: Send report by mail"
+	printf "\t%s\n" "--disk: Report about disk "
 	printf "\t%s\n" "-t --times: Specify # of times ..... "
-	printf "\t%s\n\t\t%s\n\t\t%s\n\t\t%s\n\t\t%s\n" "-s --sort: Sort data by pattern:" "1 - AVG CPU" "2 - DESV STD CPU" "3 - AVG MEM" "4 - DES STD MEM"
+	printf "\t%s\n\t\t%s\n\t\t%s\n\t\t%s\n\t\t%s\n\t\t%s\n\t\t%s\n\t\t%s\n" "-s --sort: Sort data by pattern: " "1 - PROCESS ID" "2 - AVG CPU" "3 - DESV STD CPU" "4 - AVG MEM" "5 - DES STD MEM" "6 - AVG MEM" "7 - DES STD MEM"
 }
 
 function isInstalled 
@@ -126,5 +154,3 @@ function isInstalled
 
 # Pass arguments as-is
 main "$@"
-
-
