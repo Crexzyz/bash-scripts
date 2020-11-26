@@ -13,15 +13,6 @@ function parseArguments()
 {
 	while (( "$#" )); do
 	  case "$1" in
-	    -p|--password)
-	      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
-	        password=$2
-	        shift 2
-	      else
-	        echo "Error: Missing password file for argument $1" >&2
-	        exit 1
-	      fi
-	      ;;
   	    -h|--host)
 	      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
 	        hosts="${hosts} $2"
@@ -81,15 +72,13 @@ function printHelp()
 {
 	echo -e "\e[7mRemote administration - run Virtualcollaboard administration scripts from a centralized machine\e[0m"
 	echo ""
-	echo "Usage:" $1 "<hosts> <component> <password> [options]"
+	echo "Usage:" $1 "<hosts> <component> [options]"
 	echo "Hosts:"
 	printf "\t%s\e[4m%s\e[24m\n\t\t%s\n" "-h --host " "FQDN | IP address" "Sets a host to install the administration scripts, can be used multiple times"
 	printf "\t%s\e[4m%s\e[24m\n\t\t%s\n" "-f --file " "Path to file" "Sets a host file to install the administration scripts to each host"
 	echo "Components:"
-	printf "\t%s\e[4m%s\e[24m\n\t\t%s\n" "-c --component " "component component-arguments" "Sets the component to run and its arguments"
-	printf "\t\t%s%s\n" "Available monitoring components: " "Network, Logs, Hardware"	
-	echo "Password:"
-	printf "\t%s\e[4m%s\e[24m\n\t\t%s\n" "-p --password " "Path to file" "Sets the sudo password file that the script will use"
+	printf "\t%s\e[4m%s\e[24m\n\t\t%s\n" "-c --component " "component '{component-arguments}'" "Sets the component to run and its arguments"
+	printf "\t\t%s%s\n" "Available monitoring components: " "Network, DHCP, SSH, Hardware"	
 	echo "Options:"
 	printf "\t%s\e[4m%s\e[24m\n\t\t%s\n" "-d --delay " "Seconds" "Sets time in seconds that the script will wait to retrieve the results of the scripts"
 	echo ""
@@ -105,14 +94,6 @@ function validateArgumentsData()
 	if [[ $hosts = "" ]] && [[ ! -f "$hostsFile" ]]; then
 		echo "Error: no hosts defined" >&2
 		exit 1
-	fi
-
-	if [[ ! -f "$password" ]]; then
-		echo "Error: password file does not exist" >&2
-		exit 1
-	else
-		password=$(cat $password)
-		sudoRun="echo $password | sudo -S -p"
 	fi
 
 	if [[ -f "$hostsFile" ]]; then
@@ -163,10 +144,12 @@ function prepareCommands()
 	do
 		if [[ $component = "Network" ]]; then
 			realCommand="/home/vadmin/scripts/network/Network.sh"
-		elif [[ $component = "Logs" ]]; then
-			realCommand="/home/vadmin/scripts/logs/Logs.sh"
+		elif [[ $component = "DHCP" ]]; then
+			realCommand="/home/vadmin/scripts/monitoring/dhcp/dhcp.sh"
+		elif [[ $component = "SSH" ]]; then
+			realCommand="/home/vadmin/scripts/monitoring/ssh/ssh.sh"
 		elif [[ $component = "Hardware" ]]; then
-			realCommand="/home/vadmin/scripts/hardware/Hardware.sh"
+			realCommand="/home/vadmin/scripts/monitoring/cpu-mem/cpu.sh"
 		fi
 
 		if [[ ! ${components[$component]} = "" ]]; then
@@ -189,7 +172,7 @@ function runCommands()
         fi
 
 		echo "Running commands in $host"
-		ssh -i $IDENTITY_FILE vadmin@$host $sudoRun $commands
+		ssh -i $IDENTITY_FILE vadmin@$host "$commands"
 	done
 }
 
@@ -199,7 +182,9 @@ function gatherData()
 	for host in $hosts;
 	do
 		mkdir -p temps/$host
-		scp -i $IDENTITY_FILE vadmin@$host:/home/vadmin/scripts/temps/* ./temps/$host
+		scp -i $IDENTITY_FILE -r vadmin@$host:/home/vadmin/scripts/temps/ ./temps/$host/
+		mv ./temps/$host/temps/* ./temps/$host/
+		rm -rf ./temps/$host/temps/
 	done
 }
 
