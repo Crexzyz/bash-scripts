@@ -188,6 +188,20 @@ function gatherData()
 	done
 }
 
+function generateReport()
+{
+	local LOGPATH="./temps"
+	local mailAddr="virtualcollaboard@gmail.com"
+	local files=$(find "./temps" -name *.log)
+	local currentDate=$(date)
+	currentDate=$(echo $currentDate | sed -r 's/ /_/g')
+
+	enscript -G $files -p "$LOGPATH/Report_$currentDate.ps"
+	ps2pdf "$LOGPATH/Report_$currentDate.ps" "$LOGPATH/Report_$currentDate.pdf"
+
+	echo "Virtualcollaboard report attached for commands $commands" | mailx -r "$mailAddr" -a "$LOGPATH/Report_$currentDate.pdf" -s "Report $currentDate" $mailAddr
+}
+
 function main()
 {
 	if [[ $# -eq 0 ]]; then
@@ -206,6 +220,9 @@ function main()
 
 			echo "Done. Copying files from hosts"
 			gatherData
+
+			echo "Generating report and mailing it"
+			generateReport
 		fi
 	fi
 }

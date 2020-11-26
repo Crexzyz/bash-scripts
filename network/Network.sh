@@ -9,10 +9,10 @@ IP=$(hostname -I)
 IP=$(echo $IP | sed -r 's/ /,/g')
 DESTINATION=0
 SOURCE=0
-CONNTRACK_FILE="nf_conntrack.txt" # Testing file
-#CONNTRACK_FILE="/proc/net/nf_conntrack" # Production file
-ABSPATH="." # Testing path (same directory)
-#ABSPATH="/home/vadmin/scripts/network" # Production path
+#CONNTRACK_FILE="nf_conntrack.txt" # Testing file
+CONNTRACK_FILE="/proc/net/nf_conntrack" # Production file
+#ABSPATH="." # Testing path (same directory)
+ABSPATH="/home/vadmin/scripts/network" # Production path
 
 function main()
 {
