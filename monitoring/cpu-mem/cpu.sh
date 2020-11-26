@@ -6,13 +6,15 @@ HELP=0
 MAIL=0
 DISK=0
 DETAILS=0
+LOGPATH="." # Testing path (same directory)
+#LOGPATH=/home/vadmin/scripts/temps
 ABSPATH="." # Testing path (same directory)
 #ABSPATH="/home/vadmin/scripts/network" # Production path
 
 function main()
 {
 	parseArguments "$@"
-	rm -f $ABSPATH/log_top.txt $ABSPATH/monitor_report.txt $ABSPATH/iotop_report.txt
+	rm -f $LOGPATH/log_top.txt $LOGPATH/monitor_report.txt $LOGPATH/iotop_report.txt
 
 	local sortType=""
 	if [[ $SORT -eq 1 ]]; then
@@ -35,38 +37,38 @@ function main()
 		printHelp $0
 	elif [[ $MAIL -eq 0 ]] && [[ $DETAILS -eq 0 ]] && [[ $DISK -eq 0 ]]; then
 		hostname
-		top -b -d 5 -n 2 >> $ABSPATH/log_top.txt
+		top -b -d 5 -n 2 >> $LOGPATH/log_top.txt
 		printf 'Command stared\n'
-		echo "Process ID     AVG CPU       DESV STD CPU       |       AVG MEM           DESV STD MEM  |" > $ABSPATH/monitor_report.txt
-		awk -f $ABSPATH/cpu.awk $ABSPATH/log_top.txt | sort $sortType >> $ABSPATH/monitor_report.txt
+		echo "Process ID     AVG CPU       DESV STD CPU       |       AVG MEM           DESV STD MEM  |" > $LOGPATH/monitor_report.txt
+		awk -f $ABSPATH/cpu.awk $LOGPATH/log_top.txt | sort $sortType >> $LOGPATH/monitor_report.txt
 		printf 'Command finished\n'
 	elif [[ $DETAILS -eq 1 ]]; then
 		if [[ $DISK -eq 1 ]] ; then
 	        printf "Process ID\tAVG READ\tDESV STD READ\t|\tAVG WRITE\tDESV STD WRITE\t|\tAVG IO\t\tDESV STD IO\t|\n"
-			iotop -b -d 5 -n 3 > $ABSPATH/log_iotop.txt
-			awk -f $ABSPATH/disk.awk $ABSPATH/log_iotop.txt | sort $sortType
+			iotop -b -d 5 -n 3 > $LOGPATH/log_iotop.txt
+			awk -f $ABSPATH/disk.awk $LOGPATH/log_iotop.txt | sort $sortType
 		else
 			printf "Process ID\tAVG CPU\t\tDESV STD CPU\t|\tAVG MEM\t\tDESV STD MEM\t|\n"
-			iotop -b -d 5 -n 3 > $ABSPATH/log_iotop.txt
-			awk -f $ABSPATH/cpu.awk $ABSPATH/log_top.txt | sort $sortType 
+			iotop -b -d 5 -n 3 > $LOGPATH/log_iotop.txt
+			awk -f $ABSPATH/cpu.awk $LOGPATH/log_top.txt | sort $sortType 
 		fi
 	elif [[ $DISK -eq 1 ]]; then
-        printf "Process ID\tAVG READ\tDESV STD READ\t|\tAVG WRITE\tDESV STD WRITE\t|\tAVG IO\t\tDESV STD IO\t|\n" > $ABSPATH/iotop_report.txt
-		iotop -b -d 5 -n 3 >> $ABSPATH/log_iotop.txt
-		awk -f $ABSPATH/disk.awk $ABSPATH/log_iotop.txt | sort $sortType >> $ABSPATH/iotop_report.txt
+        printf "Process ID\tAVG READ\tDESV STD READ\t|\tAVG WRITE\tDESV STD WRITE\t|\tAVG IO\t\tDESV STD IO\t|\n" > $LOGPATH/iotop_report.txt
+		iotop -b -d 5 -n 3 >> $LOGPATH/log_iotop.txt
+		awk -f $ABSPATH/disk.awk $LOGPATH/log_iotop.txt | sort $sortType >> $LOGPATH/iotop_report.txt
 	elif [[ $MAIL -eq 1 ]]; then
 		isInstalled
 		if [[ $DISK -eq 1 ]] ; then
-	        printf "Process ID\tAVG READ\tDESV STD READ\t|\tAVG WRITE\tDESV STD WRITE\t|\tAVG IO\t\tDESV STD IO\t|\n" > $ABSPATH/iotop_report.txt
-			iotop -b -d 5 -n 3 >> $ABSPATH/log_iotop.txt
-			awk -f $ABSPATH/disk.awk $ABSPATH/log_iotop.txt | sort $sortType >> $ABSPATH/iotop_report.txt
-			enscript $ABSPATH/iotop_report.txt -o - | ps2pdf - $ABSPATH/iotop_report.pdf | mail -s "DISK REPORT - VIRTUALCOLLABOARD" -a $ABSPATH/iotop_report.pdf user@mail.com <<< $ABSPATH/iotop_report.txt
+	        printf "Process ID\tAVG READ\tDESV STD READ\t|\tAVG WRITE\tDESV STD WRITE\t|\tAVG IO\t\tDESV STD IO\t|\n" > $LOGPATH/iotop_report.txt
+			iotop -b -d 5 -n 3 >> $LOGPATH/log_iotop.txt
+			awk -f $ABSPATH/disk.awk $LOGPATH/log_iotop.txt | sort $sortType >> $LOGPATH/iotop_report.txt
+			enscript $LOGPATH/iotop_report.txt -o - | ps2pdf - $LOGPATH/iotop_report.pdf | mail -s "DISK REPORT - VIRTUALCOLLABOARD" -a $LOGPATH/iotop_report.pdf user@mail.com <<< $LOGPATH/iotop_report.txt
 			printf 'Mail sent - PENDIENTE\n'
 		else
-			echo "Process ID     AVG CPU       DESV STD CPU       |       AVG MEM           DESV STD MEM  |" > $ABSPATH/monitor_report.txt
-			top -b -d 5 -n 3 >> $ABSPATH/log_top.txt
-			awk -f $ABSPATH/cpu.awk $ABSPATH/log_top.txt | sort $sortType >> $ABSPATH/monitor_report.txt
-			enscript $ABSPATH/monitor_report.txt -o - | ps2pdf - $ABSPATH/monitor_report.pdf | mail -s "SSH REPORT - VIRTUALCOLLABOARD" -a $ABSPATH/monitor_report.pdf user@mail.com <<< $ABSPATH/monitor_report.txt
+			echo "Process ID     AVG CPU       DESV STD CPU       |       AVG MEM           DESV STD MEM  |" > $LOGPATH/monitor_report.txt
+			top -b -d 5 -n 3 >> $LOGPATH/log_top.txt
+			awk -f $ABSPATH/cpu.awk $LOGPATH/log_top.txt | sort $sortType >> $LOGPATH/monitor_report.txt
+			enscript $LOGPATH/monitor_report.txt -o - | ps2pdf - $LOGPATH/monitor_report.pdf | mail -s "SSH REPORT - VIRTUALCOLLABOARD" -a $LOGPATH/monitor_report.pdf user@mail.com <<< $LOGPATH/monitor_report.txt
 			printf 'Mail sent - PENDIENTE\n'
 		fi
 	fi
@@ -112,7 +114,6 @@ function parseArguments()
 	      fi
 	      ;;
 			
-
 	    -*|--*=) # unsupported flags
 	      echo "Error: Unsupported flag $1" >&2
 	      exit 1

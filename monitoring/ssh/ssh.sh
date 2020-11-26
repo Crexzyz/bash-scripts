@@ -2,6 +2,8 @@
 MAIL=0
 DETAILS=0
 HELP=0
+LOGPATH="." # Testing path (same directory)
+#LOGPATH=/home/vadmin/scripts/temps
 ABSPATH="." # Testing path (same directory)
 #ABSPATH="/home/vadmin/scripts/network" # Production path
 
@@ -11,28 +13,28 @@ function main()
 	if [[ $# -eq 0 ]]; then
 		hostname
 		printf 'Command ran\n'
-		journalctl _SYSTEMD_UNIT=sshd.service > $ABSPATH/log_ssh.txt
-		echo '    Date                 Address        State' > $ABSPATH/ssh_report.txt
-		awk -f $ABSPATH/ssh.awk $ABSPATH/log_ssh.txt >> $ABSPATH/ssh_report.txt
+		journalctl _SYSTEMD_UNIT=sshd.service > $LOGPATH/log_ssh.txt
+		echo '    Date                 Address        State' > $LOGPATH/ssh_report.txt
+		awk -f $ABSPATH/ssh.awk $LOGPATH/log_ssh.txt >> $LOGPATH/ssh_report.txt
 	fi
 
 	if [[ $HELP -eq 1 ]]; then
 		printHelp $0
 	fi
 
-	journalctl _SYSTEMD_UNIT=sshd.service > $ABSPATH/log_ssh.txt
+	journalctl _SYSTEMD_UNIT=sshd.service > $LOGPATH/log_ssh.txt
 	
 	if [[ $DETAILS -eq 1 ]]; then
 		printf '\tDate\t\tAddress\t\tState\n'
-		awk -f $ABSPATH/ssh.awk $ABSPATH/log_ssh.txt
+		awk -f $ABSPATH/ssh.awk $LOGPATH/log_ssh.txt
 	fi
 
 	if [[ $MAIL -eq 1 ]]; then
 		isInstalled
-		echo '    Date                 Address        State' > $ABSPATH/ssh_report.txt
-		journalctl _SYSTEMD_UNIT=sshd.service > $ABSPATH/log_ssh.txt
-		awk -f $ABSPATH/ssh.awk $ABSPATH/log_ssh.txt >> $ABSPATH/ssh_report.txt
-		enscript $ABSPATH/ssh_report.txt -o - | ps2pdf - $ABSPATH/ssh_report.pdf | mail -s "SSH REPORT - VIRTUALCOLLABOARD" -a $ABSPATH/ssh_report.pdf user@mail.com <<< $ABSPATH/ssh_report.txt
+		echo '    Date                 Address        State' > $LOGPATH/ssh_report.txt
+		journalctl _SYSTEMD_UNIT=sshd.service > $LOGPATH/log_ssh.txt
+		awk -f $ABSPATH/ssh.awk $LOGPATH/log_ssh.txt >> $LOGPATH/ssh_report.txt
+		enscript $LOGPATH/ssh_report.txt -o - | ps2pdf - $LOGPATH/ssh_report.pdf | mail -s "SSH REPORT - VIRTUALCOLLABOARD" -a $LOGPATH/ssh_report.pdf user@mail.com <<< $LOGPATH/ssh_report.txt
 		printf 'Mail sent - PENDIENTE\n'
 	fi
 }
