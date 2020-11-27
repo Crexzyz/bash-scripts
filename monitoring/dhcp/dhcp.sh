@@ -49,7 +49,7 @@ function parseArguments()
 	        ADDRESS=$2
 	        shift 2
 	      else
-	        echo "Error: Missing #" >&2
+	        echo "Error: Missing mail address" >&2
 	        exit 1
 	      fi
 	      ;;

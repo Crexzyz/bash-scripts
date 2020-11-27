@@ -53,7 +53,7 @@ END {
 	for(i = 0; i < typeIndex; ++i)
 	{
 		split(typeData[i], resArr, ",")
-		if (connections[typeData[i]] > 1)
+		if (connections[typeData[i]] > 10)
 		{
 			check(resArr[1], resArr[2], connections[typeData[i]])
 		}
