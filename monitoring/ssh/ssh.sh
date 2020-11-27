@@ -35,8 +35,9 @@ function main()
 		echo '    Date                 Address        State' > $LOGPATH/ssh_report.txt
 		journalctl _SYSTEMD_UNIT=sshd.service > $LOGPATH/log_ssh.txt
 		awk -f $ABSPATH/ssh.awk $LOGPATH/log_ssh.txt >> $LOGPATH/ssh_report.txt
-		enscript $LOGPATH/ssh_report.txt -o - | ps2pdf - $LOGPATH/ssh_report.pdf | mailx -r "$mailAddr" -s "SSH REPORT - VIRTUALCOLLABOARD" -a $LOGPATH/ssh_report.pdf $ADDRESS <<< $LOGPATH/ssh_report.txt
-		printf 'Mail sent - PENDIENTE\n'
+		enscript $LOGPATH/ssh_report.txt -o - | ps2pdf - $LOGPATH/ssh_report.pdf 
+		cat $LOGPATH/ssh_report.txt | mailx -v -r "virtualcollaboard@gmail.com" -s "SSH REPORT - VIRTUALCOLLABOARD" -a $LOGPATH/ssh_report.pdf $ADDRESS
+		printf 'Mail sent to %s\n' $ADDRESS
 	fi
 }
 
@@ -86,16 +87,21 @@ function printHelp()
 
 function isInstalled 
 {
-  if yum list installed ghostscript >/dev/null 2>&1; then
-    if yum list installed enscript >/dev/null 2>&1; then
-        true
-     else
-	yum install enscript -y
-     fi
-  else
-      	yum install ghostscript -y
-        yum install enscript -y
-  fi
+	if yum list installed ghostscript >/dev/null 2>&1; then
+		if yum list installed enscript >/dev/null 2>&1; then
+			if yum list installed mailx >/dev/null 2>&1; then
+			    true
+			else
+				yum -y install mailx 
+		else
+			yum install enscript -y
+		fi
+	else
+	  	yum install ghostscript -y
+	    yum install enscript -y
+		yum -y install mailx 
+	fi
 }
+
 # Pass arguments as-is
 main "$@"

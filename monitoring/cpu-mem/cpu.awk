@@ -23,15 +23,10 @@ BEGIN {
 		if( PIDs[PID] == "" )
 		{
 			PIDs[PID] = PID
-#			printf("Meto en pid: %s \n=======================\n", PID)
-
 		}
 
 		CPUs[PID][index2] = CPU
-#		printf("Meto [%d][%d] en cpu: %s \n", PID, index2, CPU)
 		MEMs[PID][index2] = MEM
-#		printf("Meto [%d][%d] en mem: %s \n", PID, index2, MEM)
-
 	}
 	else
 	{
@@ -50,13 +45,12 @@ END {
 	sumCPU = 0
 	sumMEM = 0
 	for (i in PIDs)
+    {
+        for(j in CPUs[i])
         {
-                for(j in CPUs[i])
-                {
 			promCPU += CPUs[i][j]
- 			promMEM += MEMs[i][j]
-#                        printf(" %s      ",CPUs[i][j]) 
-                }
+			promMEM += MEMs[i][j]
+        }
 
 		promCPU = promCPU / length(CPUs[i])
 		promMEM = promMEM / length(MEMs[i])
@@ -67,12 +61,12 @@ END {
 			sumMEM += abs(CPUs[i][j]-promMEM)**2
 		}
 
-                sumCPU /= length(CPUs[i])
+        sumCPU /= length(CPUs[i])
 		sumMEM /= length(MEMs[i])
 
 		devCPU = sqrt(sumCPU)
 		devMEM = sqrt(sumMEM)
 
-		printf("%s\t\t%0.03f\t\t%0.03f\t\t|\t%0.03f\t\t%0.03f\t\t|\n", PIDs[i], promCPU, devCPU, promMEM, devMEM)
-        }
+		printf("%s\t\t%0.03f\t\t%0.03f\t\t|\t%0.03f\t\t%0.03f\n", PIDs[i], promCPU, devCPU, promMEM, devMEM)
+    }
 }

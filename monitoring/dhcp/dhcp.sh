@@ -33,8 +33,9 @@ function main()
 		isInstalled
 		journalctl -u dhcpd -n 500 --no-pager > $LOGPATH/log_dhcp.txt
 		awk -f $ABSPATH/dhcp.awk $LOGPATH/log_dhcp.txt >> $LOGPATH/dhcp_report.txt
-		enscript $LOGPATH/dhcp_report.txt -o - | ps2pdf - $LOGPATH/dhcp_report.pdf  | mailx -r "$mailAddr" -s "DHCP REPORT - VIRTUALCOLLABOARD" -a $ABSPATH/dhcp_report.pdf $ADDRESS <<< $ABSPATH/dhcp_report.txt
-		printf 'Mail sent - PENDIENTE\n'
+		enscript $LOGPATH/dhcp_report.txt -o - | ps2pdf - $LOGPATH/dhcp_report.pdf  
+		cat $ABSPATH/dhcp_report.txt | mailx -v -r "virtualcollaboard@gmail.com" -s "DHCP REPORT - VIRTUALCOLLABOARD" -a $ABSPATH/dhcp_report.pdf $ADDRESS
+		printf 'Mail sent to %s\n' $ADDRESS
 	fi
 }
 
@@ -84,16 +85,20 @@ function printHelp()
 
 
 function isInstalled {
-  if yum list installed ghostscript >/dev/null 2>&1; then
-    if yum list installed enscript >/dev/null 2>&1; then
-        true
-     else
-	yum install enscript -y
-     fi
-  else
-      	yum install ghostscript -y
-        yum install enscript -y
-  fi
+	if yum list installed ghostscript >/dev/null 2>&1; then
+		if yum list installed enscript >/dev/null 2>&1; then
+			if yum list installed mailx >/dev/null 2>&1; then
+			    true
+			else
+				yum -y install mailx 
+		else
+			yum install enscript -y
+		fi
+	else
+	  	yum install ghostscript -y
+	    yum install enscript -y
+		yum -y install mailx 
+	fi
 }
 
 

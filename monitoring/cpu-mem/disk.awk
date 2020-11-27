@@ -82,6 +82,6 @@ END {
 			devMEM = sqrt(sumMEM)
 			devIO = sqrt(sumIO)
 
-			printf("%s\t\t%0.03f\t\t%0.03f\t\t|\t%0.03f\t\t%0.03f\t\t|\t%0.03f\t\t%0.03f\t\t|\n", PIDs[i], promCPU, devCPU, devIO, promMEM, devMEM, promIO)
+			printf("%s\t\t%0.03f\t\t%0.03f\t\t|\t%0.03f\t\t%0.03f\t\t|\t%0.03f\t\t%0.03f\n", PIDs[i], promCPU, devCPU, devIO, promMEM, devMEM, promIO)
         }
 }

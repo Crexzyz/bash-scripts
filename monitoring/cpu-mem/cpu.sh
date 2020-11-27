@@ -40,37 +40,39 @@ function main()
 		hostname
 		top -b -d 5 -n 2 >> $LOGPATH/log_top.txt
 		printf 'Command stared\n'
-		echo "Process ID     AVG CPU       DESV STD CPU       |       AVG MEM           DESV STD MEM  |" > $LOGPATH/monitor_report.txt
+		echo "Process ID     AVG CPU       DESV STD CPU       |       AVG MEM           DESV STD MEM" > $LOGPATH/monitor_report.txt
 		awk -f $ABSPATH/cpu.awk $LOGPATH/log_top.txt | sort $sortType >> $LOGPATH/monitor_report.txt
 		printf 'Command finished\n'
 	elif [[ $DETAILS -eq 1 ]]; then
 		if [[ $DISK -eq 1 ]] ; then
-	        printf "Process ID\tAVG READ\tDESV STD READ\t|\tAVG WRITE\tDESV STD WRITE\t|\tAVG IO\t\tDESV STD IO\t|\n"
+	        printf "Process ID\tAVG READ\tDESV STD READ\t|\tAVG WRITE\tDESV STD WRITE\t|\tAVG IO\t\tDESV STD IO\n"
 			iotop -b -d 5 -n 3 > $LOGPATH/log_iotop.txt
 			awk -f $ABSPATH/disk.awk $LOGPATH/log_iotop.txt | sort $sortType
 		else
-			printf "Process ID\tAVG CPU\t\tDESV STD CPU\t|\tAVG MEM\t\tDESV STD MEM\t|\n"
-			iotop -b -d 5 -n 3 > $LOGPATH/log_iotop.txt
+			printf "Process ID\tAVG CPU\t\tDESV STD CPU\t|\tAVG MEM\t\tDESV STD MEM\n"
+			top -b -d 5 -n 3 > $LOGPATH/log_top.txt
 			awk -f $ABSPATH/cpu.awk $LOGPATH/log_top.txt | sort $sortType 
 		fi
 	elif [[ $DISK -eq 1 ]]; then
-        printf "Process ID\tAVG READ\tDESV STD READ\t|\tAVG WRITE\tDESV STD WRITE\t|\tAVG IO\t\tDESV STD IO\t|\n" > $LOGPATH/iotop_report.txt
+        printf "Process ID\tAVG READ\tDESV STD READ\t|\tAVG WRITE\tDESV STD WRITE\t|\tAVG IO\t\tDESV STD IO\n" > $LOGPATH/iotop_report.txt
 		iotop -b -d 5 -n 3 >> $LOGPATH/log_iotop.txt
 		awk -f $ABSPATH/disk.awk $LOGPATH/log_iotop.txt | sort $sortType >> $LOGPATH/iotop_report.txt
 	elif [[ $MAIL -eq 1 ]]; then
 		isInstalled
 		if [[ $DISK -eq 1 ]] ; then
-	        printf "Process ID\tAVG READ\tDESV STD READ\t|\tAVG WRITE\tDESV STD WRITE\t|\tAVG IO\t\tDESV STD IO\t|\n" > $LOGPATH/iotop_report.txt
+	        printf "Process ID\tAVG READ\tDESV STD READ\t|\tAVG WRITE\tDESV STD WRITE\t|\tAVG IO\t\tDESV STD IO\n" > $LOGPATH/iotop_report.txt
 			iotop -b -d 5 -n 3 >> $LOGPATH/log_iotop.txt
 			awk -f $ABSPATH/disk.awk $LOGPATH/log_iotop.txt | sort $sortType >> $LOGPATH/iotop_report.txt
-			enscript $LOGPATH/iotop_report.txt -o - | ps2pdf - $LOGPATH/iotop_report.pdf | mailx -r "$mailAddr" -s "DISK REPORT - VIRTUALCOLLABOARD" -a $LOGPATH/iotop_report.pdf $ADDRESS <<< $LOGPATH/iotop_report.txt
-			printf 'Mail sent\n'
+			enscript $LOGPATH/iotop_report.txt -o - | ps2pdf - $LOGPATH/iotop_report.pdf 
+			cat $LOGPATH/iotop_report.txt | mailx -v -r "virtualcollaboard@gmail.com" -s "DISK REPORT - VIRTUALCOLLABOARD" -a $LOGPATH/monitor_report.pdf $ADDRESS
+			printf 'Mail sent to %s\n' $ADDRESS
 		else
-			echo "Process ID     AVG CPU       DESV STD CPU       |       AVG MEM           DESV STD MEM  |" > $LOGPATH/monitor_report.txt
+			echo "Process ID     AVG CPU       DESV STD CPU       |       AVG MEM           DESV STD MEM" > $LOGPATH/monitor_report.txt
 			top -b -d 5 -n 3 >> $LOGPATH/log_top.txt
 			awk -f $ABSPATH/cpu.awk $LOGPATH/log_top.txt | sort $sortType >> $LOGPATH/monitor_report.txt
-			enscript $LOGPATH/monitor_report.txt -o - | ps2pdf - $LOGPATH/monitor_report.pdf | mailx -r "$mailAddr" -s "SSH REPORT - VIRTUALCOLLABOARD" -a $LOGPATH/monitor_report.pdf $ADDRESS <<< $LOGPATH/monitor_report.txt
-			printf 'Mail sent\n'
+			enscript $LOGPATH/monitor_report.txt -o - | ps2pdf - $LOGPATH/monitor_report.pdf 
+			cat $LOGPATH/monitor_report.txt | mailx -v -r "virtualcollaboard@gmail.com" -s "CPU-MEM REPORT - VIRTUALCOLLABOARD" -a $LOGPATH/monitor_report.pdf $ADDRESS
+			printf 'Mail sent to %s\n' $ADDRESS
 		fi
 	fi
 }
@@ -88,7 +90,6 @@ function parseArguments()
 	        echo "Error: Missing #" >&2
 	        exit 1
 	      fi
-	      shift
 	      ;;	      
   	    -d|--details)
 	      DETAILS=1
@@ -149,16 +150,20 @@ function printHelp()
 
 function isInstalled 
 {
-  if yum list installed ghostscript >/dev/null 2>&1; then
-    if yum list installed enscript >/dev/null 2>&1; then
-        true
-     else
-	yum install enscript -y
-     fi
-  else
-      	yum install ghostscript -y
-        yum install enscript -y
-  fi
+ 	if yum list installed ghostscript >/dev/null 2>&1; then
+		if yum list installed enscript >/dev/null 2>&1; then
+			if yum list installed mailx >/dev/null 2>&1; then
+			    true
+			else
+				yum -y install mailx 
+		else
+			yum install enscript -y
+		fi
+	else
+	  	yum install ghostscript -y
+	    yum install enscript -y
+		yum -y install mailx 
+	fi
 }
 
 # Pass arguments as-is
