@@ -2,6 +2,7 @@
 MAIL=0
 DETAILS=0
 HELP=0
+ADDRESS=""
 LOGPATH="." # Testing path (same directory)
 #LOGPATH=/home/vadmin/scripts/temps
 ABSPATH="." # Testing path (same directory)
@@ -34,7 +35,7 @@ function main()
 		echo '    Date                 Address        State' > $LOGPATH/ssh_report.txt
 		journalctl _SYSTEMD_UNIT=sshd.service > $LOGPATH/log_ssh.txt
 		awk -f $ABSPATH/ssh.awk $LOGPATH/log_ssh.txt >> $LOGPATH/ssh_report.txt
-		enscript $LOGPATH/ssh_report.txt -o - | ps2pdf - $LOGPATH/ssh_report.pdf | mail -s "SSH REPORT - VIRTUALCOLLABOARD" -a $LOGPATH/ssh_report.pdf user@mail.com <<< $LOGPATH/ssh_report.txt
+		enscript $LOGPATH/ssh_report.txt -o - | ps2pdf - $LOGPATH/ssh_report.pdf | mailx -r "$mailAddr" -s "SSH REPORT - VIRTUALCOLLABOARD" -a $LOGPATH/ssh_report.pdf $ADDRESS <<< $LOGPATH/ssh_report.txt
 		printf 'Mail sent - PENDIENTE\n'
 	fi
 }
@@ -45,7 +46,13 @@ function parseArguments()
 	  case "$1" in
 	    -m|--mail)
 	      MAIL=1
-	      shift
+	      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+	        ADDRESS=$2
+	        shift 2
+	      else
+	        echo "Error: Missing #" >&2
+	        exit 1
+	      fi
 	      ;;
   	    -d|--details)
 	      DETAILS=1

@@ -2,6 +2,7 @@
 MAIL=0
 DETAILS=0
 HELP=0
+ADDRESS=""
 LOGPATH="." # Testing path (same directory)
 #LOGPATH=/home/vadmin/scripts/temps
 ABSPATH="." # Testing path (same directory)
@@ -32,7 +33,7 @@ function main()
 		isInstalled
 		journalctl -u dhcpd -n 500 --no-pager > $LOGPATH/log_dhcp.txt
 		awk -f $ABSPATH/dhcp.awk $LOGPATH/log_dhcp.txt >> $LOGPATH/dhcp_report.txt
-		enscript $LOGPATH/dhcp_report.txt -o - | ps2pdf - $LOGPATH/dhcp_report.pdf  | mail -s "DHCP REPORT - VIRTUALCOLLABOARD" -a $ABSPATH/dhcp_report.pdf user@mail.com <<< $ABSPATH/dhcp_report.txt
+		enscript $LOGPATH/dhcp_report.txt -o - | ps2pdf - $LOGPATH/dhcp_report.pdf  | mailx -r "$mailAddr" -s "DHCP REPORT - VIRTUALCOLLABOARD" -a $ABSPATH/dhcp_report.pdf $ADDRESS <<< $ABSPATH/dhcp_report.txt
 		printf 'Mail sent - PENDIENTE\n'
 	fi
 }
@@ -43,7 +44,13 @@ function parseArguments()
 	  case "$1" in
 	    -m|--mail)
 	      MAIL=1
-	      shift
+	      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+	        ADDRESS=$2
+	        shift 2
+	      else
+	        echo "Error: Missing #" >&2
+	        exit 1
+	      fi
 	      ;;
   	    -d|--details)
 	      DETAILS=1

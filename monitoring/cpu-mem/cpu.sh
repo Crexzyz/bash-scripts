@@ -5,6 +5,7 @@ TNUM=3
 HELP=0
 MAIL=0
 DISK=0
+ADDRESS=""
 DETAILS=0
 LOGPATH="." # Testing path (same directory)
 #LOGPATH=/home/vadmin/scripts/temps
@@ -62,14 +63,14 @@ function main()
 	        printf "Process ID\tAVG READ\tDESV STD READ\t|\tAVG WRITE\tDESV STD WRITE\t|\tAVG IO\t\tDESV STD IO\t|\n" > $LOGPATH/iotop_report.txt
 			iotop -b -d 5 -n 3 >> $LOGPATH/log_iotop.txt
 			awk -f $ABSPATH/disk.awk $LOGPATH/log_iotop.txt | sort $sortType >> $LOGPATH/iotop_report.txt
-			enscript $LOGPATH/iotop_report.txt -o - | ps2pdf - $LOGPATH/iotop_report.pdf | mail -s "DISK REPORT - VIRTUALCOLLABOARD" -a $LOGPATH/iotop_report.pdf user@mail.com <<< $LOGPATH/iotop_report.txt
-			printf 'Mail sent - PENDIENTE\n'
+			enscript $LOGPATH/iotop_report.txt -o - | ps2pdf - $LOGPATH/iotop_report.pdf | mailx -r "$mailAddr" -s "DISK REPORT - VIRTUALCOLLABOARD" -a $LOGPATH/iotop_report.pdf $ADDRESS <<< $LOGPATH/iotop_report.txt
+			printf 'Mail sent\n'
 		else
 			echo "Process ID     AVG CPU       DESV STD CPU       |       AVG MEM           DESV STD MEM  |" > $LOGPATH/monitor_report.txt
 			top -b -d 5 -n 3 >> $LOGPATH/log_top.txt
 			awk -f $ABSPATH/cpu.awk $LOGPATH/log_top.txt | sort $sortType >> $LOGPATH/monitor_report.txt
-			enscript $LOGPATH/monitor_report.txt -o - | ps2pdf - $LOGPATH/monitor_report.pdf | mail -s "SSH REPORT - VIRTUALCOLLABOARD" -a $LOGPATH/monitor_report.pdf user@mail.com <<< $LOGPATH/monitor_report.txt
-			printf 'Mail sent - PENDIENTE\n'
+			enscript $LOGPATH/monitor_report.txt -o - | ps2pdf - $LOGPATH/monitor_report.pdf | mailx -r "$mailAddr" -s "SSH REPORT - VIRTUALCOLLABOARD" -a $LOGPATH/monitor_report.pdf $ADDRESS <<< $LOGPATH/monitor_report.txt
+			printf 'Mail sent\n'
 		fi
 	fi
 }
@@ -80,6 +81,13 @@ function parseArguments()
 	  case "$1" in
 	    -m|--mail)
 	      MAIL=1
+	      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+	        ADDRESS=$2
+	        shift 2
+	      else
+	        echo "Error: Missing #" >&2
+	        exit 1
+	      fi
 	      shift
 	      ;;	      
   	    -d|--details)
