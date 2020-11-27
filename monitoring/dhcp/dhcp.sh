@@ -90,7 +90,8 @@ function isInstalled {
 			if yum list installed mailx >/dev/null 2>&1; then
 			    true
 			else
-				yum -y install mailx 
+				yum -y install mailx
+			fi 
 		else
 			yum install enscript -y
 		fi
