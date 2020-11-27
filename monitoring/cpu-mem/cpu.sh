@@ -156,6 +156,7 @@ function isInstalled
 			    true
 			else
 				yum -y install mailx 
+			fi
 		else
 			yum install enscript -y
 		fi
