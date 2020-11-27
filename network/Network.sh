@@ -13,52 +13,54 @@ SOURCE=0
 CONNTRACK_FILE="/proc/net/nf_conntrack" # Production file
 #ABSPATH="." # Testing path (same directory)
 ABSPATH="/home/vadmin/scripts/network" # Production path
+#LOGPATH="./network.log"
+LOGPATH="/home/vadmin/scripts/temps/network.log"
 
 function main()
 {
+	echo "" > $LOGPATH
+
 	if [[ $# -eq 0 ]]; then
 		printHelp $0
+		exit 0
 	else
 		parseArguments "$@"
 	fi
 
 	if [[ $CLIENT -eq 1 ]]; then
 		if [[ $PORTS -eq 1 ]]; then
-			check_client P
+			check_client P &>> $LOGPATH
 		elif [[ -z "$IP"  ]]; then
-			printf 'You must specify IP/IPs\n'
+			printf 'You must specify IP/IPs\n' &>> $LOGPATH
 		else
-			check_client
+			check_client &>> $LOGPATH
 		fi
 	fi
 	if [[ $SERVER -eq 1 ]]; then
 		echo ""
 		if [[ $PORTS -eq 1 ]]; then
-			check_server P
+			check_server P &>> $LOGPATH
 		elif [[ -z "$IP"  ]]; then
-			printf 'You must specify IP/IPs\n'
+			printf 'You must specify IP/IPs\n' &>> $LOGPATH
 		else
-			check_server
+			check_server &>> $LOGPATH
 		fi
 	fi
 	if [[ $FIREWALL -eq 1 ]]; then
 		if [[ $DESTINATION -eq 1 ]]; then
-			check_firewall D
+			check_firewall D &>> $LOGPATH
 		elif [[ -z "$IP"  ]]; then
-			printf 'You must specify IP/IPs\n'
+			printf 'You must specify IP/IPs\n' &>> $LOGPATH
 		else
 			if [[ $DESTINATION -eq 1 ]] || [[ $SOURCE -eq 1 ]]; then
-				check_firewall S
+				check_firewall S &>> $LOGPATH
 			else
-				printf 'You must specify src or dst\n'
+				printf 'You must specify a source or destination address\n' &>> $LOGPATH
 			fi
 		fi
 	fi
 
-	if [[ $CLIENT -eq 0 ]] && [[ $SERVER -eq 0 ]] && [[ $FIREWALL -eq 0 ]]; then
-			printHelp $0
-	fi
-
+	cat $LOGPATH
 }
 
 function check_client()
