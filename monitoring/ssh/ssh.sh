@@ -1,19 +1,28 @@
 #!/bin/bash
 MAIL=0
+AUTO=0
 DETAILS=0
 HELP=0
 ADDRESS=""
-LOGPATH="." # Testing path (same directory)
-#LOGPATH=/home/vadmin/scripts/temps
-ABSPATH="." # Testing path (same directory)
-#ABSPATH="/home/vadmin/scripts/network" # Production path
+# LOGPATH="." # Testing path (same directory)
+LOGPATH=/home/vadmin/scripts/temps
+# ABSPATH="." # Testing path (same directory)
+ABSPATH="/home/vadmin/scripts/monitoring/ssh" # Production path
 
 function main()
 {
 	parseArguments "$@"
-	if [[ $# -eq 0 ]]; then
-		hostname
-		printf 'Command ran\n'
+
+	if [[ -f $LOGPATH/dhcp_report.txt ]]; then
+		echo "" > $LOGPATH/dhcp_report.txt
+	fi
+
+	if [[ $# -eq 0 ]] || [[ $AUTO -eq 1 ]]; then
+		if [[ $AUTO -eq 0 ]]; then
+			hostname
+			printf 'Command ran\n'
+		fi
+
 		journalctl _SYSTEMD_UNIT=sshd.service > $LOGPATH/log_ssh.txt
 		echo '    Date                 Address        State' > $LOGPATH/ssh_report.txt
 		awk -f $ABSPATH/ssh.awk $LOGPATH/log_ssh.txt >> $LOGPATH/ssh_report.txt
@@ -57,6 +66,10 @@ function parseArguments()
 	      ;;
   	    -d|--details)
 	      DETAILS=1
+	      shift
+	      ;;
+  	    -a|--auto)
+	      AUTO=1
 	      shift
 	      ;;
   	    -h|--help)
