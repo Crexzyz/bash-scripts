@@ -159,7 +159,7 @@ function prepareCommands()
 		fi
 
 		if [[ ! ${components[$component]} = "" ]]; then
-			commands="$commands sudo $realCommand ${components[$component]} & "
+			commands="$commands ( sudo $realCommand ${components[$component]} &>/dev/null ) & "
 		fi
 		realCommand=""
 	done
@@ -178,7 +178,7 @@ function runCommands()
         fi
 
 		echo "Running commands in $host"
-		ssh -i $IDENTITY_FILE vadmin@$host "$commands"
+		ssh -i $IDENTITY_FILE vadmin@$host "nohup bash -c '( $commands )'"
 	done
 }
 
