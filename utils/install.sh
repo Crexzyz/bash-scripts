@@ -87,6 +87,9 @@ function installScripts()
         # Commented until the scripts are ready
         scp -q -i $IDENTITY_FILE -r ../network/ vadmin@$host:/home/vadmin/scripts/
         scp -q -i $IDENTITY_FILE -r ../monitoring/ vadmin@$host:/home/vadmin/scripts/
+
+        echo "Installing cron job for ssh"
+        echo "0 18 * * * root /home/vadmin/scripts/monitoring/ssh/ssh.sh -m" > /etc/cron.d/ssh-check
 	done
 }
 
