@@ -2,6 +2,7 @@
 
 hosts=""
 password=""
+mailResults=""
 hostsFile=""
 declare -A components=( [Network]="" [Logs]="" [Hardware]="" )
 delay="0"
@@ -21,6 +22,10 @@ function parseArguments()
 	        echo "Error: Missing host for argument $1" >&2
 	        exit 1
 	      fi
+	      ;;
+	    -m|--mail)
+	      mail=1
+	      shift
 	      ;;
   	    -f|--file)
 	      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
@@ -74,17 +79,18 @@ function printHelp()
 	echo ""
 	echo "Usage:" $1 "<hosts> <component> [options]"
 	echo "Hosts:"
-	printf "\t%s\e[4m%s\e[24m\n\t\t%s\n" "-h --host " "FQDN | IP address" "Sets a host to install the administration scripts, can be used multiple times"
-	printf "\t%s\e[4m%s\e[24m\n\t\t%s\n" "-f --file " "Path to file" "Sets a host file to install the administration scripts to each host"
+	printf "\t%s\e[4m%s\e[24m\n\t\t%s\n" "-h --host " "FQDN | IP address" "Sets a host to run the administration scripts, can be used multiple times"
+	printf "\t%s\e[4m%s\e[24m\n\t\t%s\n" "-f --file " "Path to file" "Sets a host file to run the administration scripts in each host"
 	echo "Components:"
 	printf "\t%s\e[4m%s\e[24m\n\t\t%s\n" "-c --component " "component '{component-arguments}'" "Sets the component to run and its arguments"
 	printf "\t\t%s%s\n" "Available monitoring components: " "Network, DHCP, SSH, Hardware"	
 	echo "Options:"
 	printf "\t%s\e[4m%s\e[24m\n\t\t%s\n" "-d --delay " "Seconds" "Sets time in seconds that the script will wait to retrieve the results of the scripts"
+	printf "\t%s\n\t\t%s\n" "-m --mail " "Prepares a report and mails it to the Virtualcollaboard mail account"
 	echo ""
 	echo "Examples:"
-	printf "\t%s\n" "$1 -h gestion02 -c Network '{-c -p -l 10}' -p pass.txt"
-	printf "\t%s\n" "$1 -f servers.txt -c Network '{-c -p -l 10}' -c Logs '{-a}' -p pass.txt"
+	printf "\t%s\n" "$1 -h gestion02 -c Network '{-c -p -l 10}'"
+	printf "\t%s\n" "$1 -f servers.txt -c Network '{-c -p -l 10}' -c Logs '{-a}'"
 	printf "\t%s\n" "$1 -f servers.txt -c Hardware '{-c -r}' -d 10"
 	echo "Note that components' parameters must be enclosed between '{' and '}'"
 }
@@ -218,11 +224,15 @@ function main()
 			echo "Waiting $delay seconds for commands to stop"
 			sleep $delay
 
-			echo "Done. Copying files from hosts"
+			echo "Copying files from hosts"
 			gatherData
 
-			echo "Generating report and mailing it"
-			generateReport
+			if [[ mail -eq 1 ]]; then
+				echo "Generating report and mailing it"
+				generateReport
+			else
+				echo "Done. Logs saved in the ./temps folder"
+			fi
 		fi
 	fi
 }
