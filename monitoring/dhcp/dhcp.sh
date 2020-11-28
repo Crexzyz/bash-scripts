@@ -3,10 +3,10 @@ MAIL=0
 DETAILS=0
 HELP=0
 ADDRESS=""
-LOGPATH="." # Testing path (same directory)
-#LOGPATH=/home/vadmin/scripts/temps
-ABSPATH="." # Testing path (same directory)
-#ABSPATH="/home/vadmin/scripts/network" # Production path
+#LOGPATH="." # Testing path (same directory)
+LOGPATH=/home/vadmin/scripts/temps
+#ABSPATH="." # Testing path (same directory)
+ABSPATH="/home/vadmin/scripts/network" # Production path
 
 function main()
 {
@@ -77,9 +77,9 @@ function parseArguments()
 
 function printHelp()
 {
-	echo "Usage:" $1 "<context> [lines]"
-	echo "Context:"
-	printf "\t%s\n" "-m --mail: Prints connection information as a client machine"
+	echo "Usage:" $1 "[options]"
+	echo "Options:"
+	printf "\t%s\n" "-m --mail: Mails report to Virtualcollaboard mail account"
 	printf "\t%s\n" "-d --details: Show report in terminal"
 }
 
