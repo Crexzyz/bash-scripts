@@ -188,6 +188,7 @@ function gatherData()
 	for host in $hosts;
 	do
 		mkdir -p temps/$host
+		ssh -q -i $IDENTITY_FILE vadmin@$host "sudo chown vadmin:vadmin -R /home/vadmin/scripts/temps/ && exit"
 		scp -i $IDENTITY_FILE -r vadmin@$host:/home/vadmin/scripts/temps/ ./temps/$host/
 		mv ./temps/$host/temps/* ./temps/$host/
 		rm -rf ./temps/$host/temps/
