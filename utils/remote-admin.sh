@@ -42,7 +42,7 @@ function parseArguments()
 				echo "Error: unknown component ($2)"
 				exit 1
 			else
-				components[$2]=$(echo $3 | sed "s/{//g;s/}//g")
+				components[$2]=$(echo "-a" $3 | sed "s/{//g;s/}//g")
 			fi
 	        shift 3
 	      else

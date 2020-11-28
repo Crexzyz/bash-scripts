@@ -5,12 +5,13 @@ TNUM=3
 HELP=0
 MAIL=0
 DISK=0
+AUTO=0
 ADDRESS=""
 DETAILS=0
-LOGPATH="." # Testing path (same directory)
-#LOGPATH=/home/vadmin/scripts/temps
-ABSPATH="." # Testing path (same directory)
-#ABSPATH="/home/vadmin/scripts/network" # Production path
+#LOGPATH="." # Testing path (same directory)
+LOGPATH=/home/vadmin/scripts/temps
+# ABSPATH="." # Testing path (same directory)
+ABSPATH="/home/vadmin/scripts/monitoring/cpu-mem" # Production path
 
 function main()
 {
@@ -39,10 +40,15 @@ function main()
 	elif [[ $MAIL -eq 0 ]] && [[ $DETAILS -eq 0 ]] && [[ $DISK -eq 0 ]]; then
 		hostname
 		top -b -d 5 -n 2 >> $LOGPATH/log_top.txt
-		printf 'Command stared\n'
+		if [[ $AUTO -eq 0 ]]; then
+			printf 'Command started\n'
+		fi
 		echo "Process ID     AVG CPU       DESV STD CPU       |       AVG MEM           DESV STD MEM" > $LOGPATH/monitor_report.txt
 		awk -f $ABSPATH/cpu.awk $LOGPATH/log_top.txt | sort $sortType >> $LOGPATH/monitor_report.txt
-		printf 'Command finished\n'
+
+		if [[ $AUTO -eq 0 ]]; then
+			printf 'Command finished\n'
+		fi
 	elif [[ $DETAILS -eq 1 ]]; then
 		if [[ $DISK -eq 1 ]] ; then
 			if [[ $MAIL -eq 1 ]]; then
@@ -123,6 +129,10 @@ function parseArguments()
 	      DISK=1
 	      shift
 	      ;;
+	    -a|--auto)
+	      AUTO=1
+	      shift
+	      ;;  
   	    -h|--help)
 	      HELP=1
 	      shift
