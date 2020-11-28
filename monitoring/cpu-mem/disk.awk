@@ -53,6 +53,12 @@ END {
 	sumCPU = 0
 	sumMEM = 0
 	sumIO = 0
+
+	generalCount = 0
+	allPromReads = 0
+	allPromWrites = 0
+	allPromIO = 0
+
 	for (i in PIDs)
         {
             for(j in DREADs[i])
@@ -61,6 +67,11 @@ END {
 				promMEM += DWRITEs[i][j]
 				promIO += DIOs[i][j]
 #               printf(" %s      ",CPUs[i][j]) 
+				
+				generalCount += 1
+				allPromReads += DREADs[i][j]
+				allPromWrites += DWRITEs[i][j]
+				allPromWrites += DIOs[i][j]
             }
 
 			promCPU = promCPU / length(DREADs[i])
@@ -84,4 +95,29 @@ END {
 
 			printf("%s\t\t%0.03f\t\t%0.03f\t\t|\t%0.03f\t\t%0.03f\t\t|\t%0.03f\t\t%0.03f\n", PIDs[i], promCPU, devCPU, devIO, promMEM, devMEM, promIO)
         }
+
+    allPromReads = allPromReads / generalCount
+    allPromWrites = allPromWrites / generalCount
+    allPromIO = allPromIO / generalCount
+
+    allDevReads = 0
+	allDevWrites = 0
+	allDevIO = 0
+
+    for(process in PIDs)
+    {
+    	for(thread in DREADs[process])
+    	{
+    		allDevReads += abs(CPUs[process][thread] - allPromReads)**2
+    		allDevWrites += abs(CPUs[process][thread] - allPromWrites)**2
+    		allDevIO += abs(CPUs[process][thread] - allPromIO)**2
+    	}
+    }
+
+    allDevReads = sqrt(allDevReads / generalCount)
+    allDevWrites = sqrt(allDevWrites / generalCount)
+    allDevIO = sqrt(allDevIO / generalCount)
+
+    printf("%s\t\t%0.03f\t\t%0.03f\t\t|\t%0.03f\t\t%0.03f\t\t|\t%0.03f\t\t%0.03f\n", "General", allPromReads, allPromWrites, allPromIO, allDevReads, allDevWrites, allDevIO)
+
 }
