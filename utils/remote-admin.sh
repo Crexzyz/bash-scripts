@@ -5,7 +5,7 @@ password=""
 mailResults=""
 hostsFile=""
 declare -A components=( [Network]="" [DHCP]="" [SSH]="" [Hardware]="" )
-delay="0"
+delay=0
 commands=""
 IDENTITY_FILE="/root/.ssh/id_rsa"
 declare -A commandsArr=( [0]="" [1]="" [2]="" [3]="" [4]="" )
@@ -111,7 +111,7 @@ function validateArgumentsData()
 		exit 1
 	fi
 
-	if [[ ! ${components[Hardware]} = "" ]] && [[ $delay = "" ]]; then
+	if [[ ! ${components[Hardware]} = "" ]] && [[ $delay -eq 0 ]]; then
 		echo "Error: delay parameter is needed when running the hardware monitoring command" >&2
    		exit 1
 	else
