@@ -85,8 +85,8 @@ function installScripts()
         echo "Copying files..."
 
         # Commented until the scripts are ready
-        scp -i $IDENTITY_FILE -r ../network/ vadmin@$host:/home/vadmin/scripts/
-        scp -i $IDENTITY_FILE -r ../monitoring/ vadmin@$host:/home/vadmin/scripts/
+        scp -q -i $IDENTITY_FILE -r ../network/ vadmin@$host:/home/vadmin/scripts/
+        scp -q -i $IDENTITY_FILE -r ../monitoring/ vadmin@$host:/home/vadmin/scripts/
 	done
 }
 
