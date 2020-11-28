@@ -4,7 +4,7 @@ hosts=""
 password=""
 mailResults=""
 hostsFile=""
-declare -A components=( [Network]="" [Logs]="" [Hardware]="" )
+declare -A components=( [Network]="" [DHCP]="" [SSH]="" [Hardware]="" )
 delay="0"
 commands=""
 IDENTITY_FILE="/root/.ssh/id_rsa"
@@ -38,7 +38,7 @@ function parseArguments()
 	      ;;
 	    -c|--component)
 	      if [ -n "$2" ] && [ ${2:0:1} != "-" ] && [ -n "$3" ] && [ ${3:0:1} == "{" ]; then
-	        if [[ ! $2 = "Network" ]] && [[ ! $2 = "Logs" ]] && [[ ! $2 = "Hardware" ]] ; then
+	        if [[ ! $2 = "Network" ]] && [[ ! $2 = "DHCP" ]] && [[ ! $2 = "SSH" ]] && [[ ! $2 = "Hardware" ]] ; then
 				echo "Error: unknown component ($2)"
 				exit 1
 			else
@@ -106,7 +106,7 @@ function validateArgumentsData()
 		hosts="$hosts $(cat $hostsFile)"
 	fi
 
-	if [[ ${components[Network]} = "" ]] && [[ ${components[Logs]} = "" ]] && [[ ${components[Hardware]} = "" ]]; then
+	if [[ ${components[Network]} = "" ]] && [[ ${components[DHCP]} = "" ]] && [[ ${components[SSH]} = "" ]] && [[ ${components[Hardware]} = "" ]]; then
 		echo "Error: no component set to run" >&2
 		exit 1
 	fi

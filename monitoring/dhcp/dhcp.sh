@@ -2,6 +2,7 @@
 MAIL=0
 DETAILS=0
 HELP=0
+AUTO=0
 ADDRESS=""
 #LOGPATH="." # Testing path (same directory)
 LOGPATH=/home/vadmin/scripts/temps
@@ -55,6 +56,10 @@ function parseArguments()
 	      ;;
   	    -d|--details)
 	      DETAILS=1
+	      shift
+	      ;;
+      	-a|--auto)
+	      AUTO=1
 	      shift
 	      ;;
   	    -h|--help)
