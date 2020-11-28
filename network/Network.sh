@@ -1,5 +1,6 @@
 #!/bin/bash
 PARAMS=""
+AUTO=0
 CLIENT=0
 SERVER=0
 FIREWALL=0
@@ -18,7 +19,9 @@ LOGPATH="/home/vadmin/scripts/temps/network.log"
 
 function main()
 {
-	echo "" > $LOGPATH
+	if [[ -f $LOGPATH ]]; then
+		echo "" > $LOGPATH
+	fi
 
 	if [[ $# -eq 0 ]]; then
 		printHelp $0
@@ -60,7 +63,9 @@ function main()
 		fi
 	fi
 
-	cat $LOGPATH
+	if [[ AUTO -eq 0 ]]; then
+		cat $LOGPATH
+	fi
 }
 
 function check_client()
@@ -70,11 +75,6 @@ function check_client()
 	else
 		printf 'Address\t\tConnections (Client)\n'
 	fi
-
-	# Get local IPs splitted by commas
-
-	# TEMPORAL LOCALIP FOR TESTING
-	# localIPs="192.168.13.1,192.168.15.1,172.24.132.16"
 
 	local sortType=""
 	if [[ $PORTS -eq 1 ]]; then
@@ -97,13 +97,6 @@ function check_server()
 	else
 		printf 'Address\t\tConnections (Server)\n'
 	fi
-
-	# Get local IPs splitted by commas
-	local serverIPs=$(hostname -I)
-	serverIPs=${serverIPs// /,}
-
-	# TEMPORAL LOCALIP FOR TESTING
-	# serverIPs="172.24.132.16,192.168.13.30"
 
 	local sortType=""
 	if [[ $PORTS -eq 1 ]]; then
@@ -137,6 +130,10 @@ function parseArguments()
 {
 	while (( "$#" )); do
 	  case "$1" in
+	  	-a|--auto)
+	      AUTO=1
+	      shift
+	      ;;
 	    -c|--client)
 	      CLIENT=1
 	      shift
@@ -195,17 +192,19 @@ function parseArguments()
 
 function printHelp()
 {
-	echo "Usage:" $1 "<context> [lines]"
-	echo "Context:"
+	echo "Usage:" $1 "<context> [context options] [options]"
+	echo "Contexts:"
 	printf "\t%s\n" "-c --client: Prints connection information as a client machine"
 	printf "\t%s\n" "-s --server: Prints connection information as a server machine"
-	printf "\t%s\n" "-p --ports: Prints port information instead of IP addresses"
-	printf "\t%s\n" "-f --firewall: Prints connection information as a firewall machine"
+	printf "\t%s\n" "-f --firewall: Prints connection information as a firewall machine, needs at least the --src or the --dst flag"
+	echo "Context options:"
 	printf "\t%s\n" "-i --ip: IP addresses"
-	printf "\t%s\n" "--src: Soucer IP addresses"
-	printf "\t%s\n" "--dst: Destination IP addresses"
-	echo "Lines:"
+	printf "\t%s\n" "--src: Checks for source IP addresses in the firewall context"
+	printf "\t%s\n" "--dst: Checks for destination IP addresses in the firewall context"
+	echo "Options:"
+	printf "\t%s\n" "-p --ports: Prints port information instead of IP addresses"
 	printf "\t%s\n" "-l --lines N: Prints the top N lines"
+	printf "\t%s\n" "-a --auto: Enabled when the script is called from remote-admin, skips printing information"
 }
 
 # Pass arguments as-is
