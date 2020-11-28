@@ -7,13 +7,15 @@ ADDRESS=""
 #LOGPATH="." # Testing path (same directory)
 LOGPATH=/home/vadmin/scripts/temps
 #ABSPATH="." # Testing path (same directory)
-ABSPATH="/home/vadmin/scripts/network" # Production path
+ABSPATH="/home/vadmin/scripts/monitoring/dhcp" # Production path
 
 function main()
 {
 	parseArguments "$@"
-	if [[ $# -eq 0 ]]; then
-		printf 'Command ran\n'
+	if [[ $# -eq 0 ]] || [[ $AUTO -eq 1 ]]; then
+		if [[ $AUTO -eq 1 ]]; then
+			printf 'Command ran\n'
+		fi
 		echo '    Date                MAC Address             Host            IP Address      State' > dhcp_report.txt
 		journalctl -u dhcpd -n 500 --no-pager > $LOGPATH/log_dhcp.txt
 		awk -f $ABSPATH/dhcp.awk $LOGPATH/log_dhcp.txt >> $LOGPATH/dhcp_report.txt
