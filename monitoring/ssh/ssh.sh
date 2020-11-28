@@ -13,8 +13,8 @@ function main()
 {
 	parseArguments "$@"
 
-	if [[ -f $LOGPATH/dhcp_report.txt ]]; then
-		echo "" > $LOGPATH/dhcp_report.txt
+	if [[ -f $LOGPATH/ssh_report.log ]]; then
+		echo "" > $LOGPATH/ssh_report.log
 	fi
 
 	if [[ $# -eq 0 ]] || [[ $AUTO -eq 1 ]]; then
@@ -24,8 +24,8 @@ function main()
 		fi
 
 		journalctl _SYSTEMD_UNIT=sshd.service > $LOGPATH/log_ssh.txt
-		echo '    Date                 Address        State' > $LOGPATH/ssh_report.txt
-		awk -f $ABSPATH/ssh.awk $LOGPATH/log_ssh.txt >> $LOGPATH/ssh_report.txt
+		echo '    Date                 Address        State' > $LOGPATH/ssh_report.log
+		awk -f $ABSPATH/ssh.awk $LOGPATH/log_ssh.txt >> $LOGPATH/ssh_report.log
 	fi
 
 	if [[ $HELP -eq 1 ]]; then
@@ -41,11 +41,11 @@ function main()
 
 	if [[ $MAIL -eq 1 ]]; then
 		isInstalled
-		echo '    Date                 Address        State' > $LOGPATH/ssh_report.txt
+		echo '    Date                 Address        State' > $LOGPATH/ssh_report.log
 		journalctl _SYSTEMD_UNIT=sshd.service > $LOGPATH/log_ssh.txt
-		awk -f $ABSPATH/ssh.awk $LOGPATH/log_ssh.txt >> $LOGPATH/ssh_report.txt
-		enscript $LOGPATH/ssh_report.txt -o - | ps2pdf - $LOGPATH/ssh_report.pdf 
-		cat $LOGPATH/ssh_report.txt | mailx -v -r "virtualcollaboard@gmail.com" -s "SSH REPORT - VIRTUALCOLLABOARD" -a $LOGPATH/ssh_report.pdf $ADDRESS
+		awk -f $ABSPATH/ssh.awk $LOGPATH/log_ssh.txt >> $LOGPATH/ssh_report.log
+		enscript $LOGPATH/ssh_report.log -o - | ps2pdf - $LOGPATH/ssh_report.pdf 
+		cat $LOGPATH/ssh_report.log | mailx -v -r "virtualcollaboard@gmail.com" -s "SSH REPORT - VIRTUALCOLLABOARD" -a $LOGPATH/ssh_report.pdf $ADDRESS
 		printf 'Mail sent to %s\n' $ADDRESS
 	fi
 }

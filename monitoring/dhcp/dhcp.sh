@@ -13,17 +13,17 @@ function main()
 {
 	parseArguments "$@"
 
-	if [[ -f $LOGPATH/dhcp_report.txt ]]; then
-		echo "" > $LOGPATH/dhcp_report.txt
+	if [[ -f $LOGPATH/dhcp_report.log ]]; then
+		echo "" > $LOGPATH/dhcp_report.log
 	fi
 
 	if [[ $# -eq 0 ]] || [[ $AUTO -eq 1 ]]; then
 		if [[ $AUTO -eq 0 ]]; then
 			printf 'Command ran\n'
 		fi
-		echo '    Date                MAC Address             Host            IP Address      State' > dhcp_report.txt
+		echo '    Date                MAC Address             Host            IP Address      State' > dhcp_report.log
 		journalctl -u dhcpd -n 500 --no-pager > $LOGPATH/log_dhcp.txt
-		awk -f $ABSPATH/dhcp.awk $LOGPATH/log_dhcp.txt >> $LOGPATH/dhcp_report.txt
+		awk -f $ABSPATH/dhcp.awk $LOGPATH/log_dhcp.txt >> $LOGPATH/dhcp_report.log
 	fi
 
 	if [[ $HELP -eq 1 ]]; then
@@ -40,9 +40,9 @@ function main()
 	if [[ $MAIL -eq 1 ]]; then
 		isInstalled
 		journalctl -u dhcpd -n 500 --no-pager > $LOGPATH/log_dhcp.txt
-		awk -f $ABSPATH/dhcp.awk $LOGPATH/log_dhcp.txt >> $LOGPATH/dhcp_report.txt
-		enscript $LOGPATH/dhcp_report.txt -o - | ps2pdf - $LOGPATH/dhcp_report.pdf  
-		cat $ABSPATH/dhcp_report.txt | mailx -v -r "virtualcollaboard@gmail.com" -s "DHCP REPORT - VIRTUALCOLLABOARD" -a $ABSPATH/dhcp_report.pdf $ADDRESS
+		awk -f $ABSPATH/dhcp.awk $LOGPATH/log_dhcp.txt >> $LOGPATH/dhcp_report.log
+		enscript $LOGPATH/dhcp_report.log -o - | ps2pdf - $LOGPATH/dhcp_report.pdf  
+		cat $ABSPATH/dhcp_report.log | mailx -v -r "virtualcollaboard@gmail.com" -s "DHCP REPORT - VIRTUALCOLLABOARD" -a $ABSPATH/dhcp_report.pdf $ADDRESS
 		printf 'Mail sent to %s\n' $ADDRESS
 	fi
 }

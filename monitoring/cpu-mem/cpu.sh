@@ -16,7 +16,7 @@ ABSPATH="/home/vadmin/scripts/monitoring/cpu-mem" # Production path
 function main()
 {
 	parseArguments "$@"
-	rm -f $LOGPATH/log_top.txt $LOGPATH/monitor_report.txt $LOGPATH/iotop_report.txt
+	rm -f $LOGPATH/log_top.log $LOGPATH/monitor_report.log $LOGPATH/iotop_report.log
 
 	local sortType=""
 	if [[ $SORT -eq 1 ]]; then
@@ -39,12 +39,12 @@ function main()
 		printHelp $0
 	elif [[ $MAIL -eq 0 ]] && [[ $DETAILS -eq 0 ]] && [[ $DISK -eq 0 ]]; then
 		hostname
-		top -b -d 5 -n 2 >> $LOGPATH/log_top.txt
+		top -b -d 5 -n 2 >> $LOGPATH/log_top.log
 		if [[ $AUTO -eq 0 ]]; then
 			printf 'Command started\n'
 		fi
-		echo "Process ID     AVG CPU       DESV STD CPU       |       AVG MEM           DESV STD MEM" > $LOGPATH/monitor_report.txt
-		awk -f $ABSPATH/cpu.awk $LOGPATH/log_top.txt | sort $sortType >> $LOGPATH/monitor_report.txt
+		echo "Process ID     AVG CPU       DESV STD CPU       |       AVG MEM           DESV STD MEM" > $LOGPATH/monitor_report.log
+		awk -f $ABSPATH/cpu.awk $LOGPATH/log_top.log | sort $sortType >> $LOGPATH/monitor_report.log
 
 		if [[ $AUTO -eq 0 ]]; then
 			printf 'Command finished\n'
@@ -54,12 +54,12 @@ function main()
 			if [[ $MAIL -eq 1 ]]; then
 				isInstalled
 		        printf "Process ID\tAVG READ\tDESV STD READ\t|\tAVG WRITE\tDESV STD WRITE\t|\tAVG IO\t\tDESV STD IO\n"
-		        printf "Process ID\tAVG READ\tDESV STD READ\t|\tAVG WRITE\tDESV STD WRITE\t|\tAVG IO\t\tDESV STD IO\n" > $LOGPATH/iotop_report.txt
+		        printf "Process ID\tAVG READ\tDESV STD READ\t|\tAVG WRITE\tDESV STD WRITE\t|\tAVG IO\t\tDESV STD IO\n" > $LOGPATH/iotop_report.log
 				iotop -b -d 5 -n 3 >> $LOGPATH/log_iotop.txt
-				awk -f $ABSPATH/disk.awk $LOGPATH/log_iotop.txt | sort $sortType >> $LOGPATH/iotop_report.txt
-				cat $LOGPATH/iotop_report.txt
-				enscript $LOGPATH/iotop_report.txt -o - | ps2pdf - $LOGPATH/iotop_report.pdf 
-				cat $LOGPATH/iotop_report.txt | mailx -v -r "virtualcollaboard@gmail.com" -s "DISK REPORT - VIRTUALCOLLABOARD" -a $LOGPATH/monitor_report.pdf $ADDRESS
+				awk -f $ABSPATH/disk.awk $LOGPATH/log_iotop.txt | sort $sortType >> $LOGPATH/iotop_report.log
+				cat $LOGPATH/iotop_report.log
+				enscript $LOGPATH/iotop_report.log -o - | ps2pdf - $LOGPATH/iotop_report.pdf 
+				cat $LOGPATH/iotop_report.log | mailx -v -r "virtualcollaboard@gmail.com" -s "DISK REPORT - VIRTUALCOLLABOARD" -a $LOGPATH/monitor_report.pdf $ADDRESS
 				printf 'Mail sent to %s\n' $ADDRESS
 			else
 		        printf "Process ID\tAVG READ\tDESV STD READ\t|\tAVG WRITE\tDESV STD WRITE\t|\tAVG IO\t\tDESV STD IO\n"
@@ -70,38 +70,38 @@ function main()
 			if [[ $MAIL -eq 1 ]]; then
 				isInstalled
 				echo "Process ID     AVG CPU       DESV STD CPU       |       AVG MEM           DESV STD MEM"
-				echo "Process ID     AVG CPU       DESV STD CPU       |       AVG MEM           DESV STD MEM" > $LOGPATH/monitor_report.txt
-				top -b -d 5 -n 3 >> $LOGPATH/log_top.txt
-				awk -f $ABSPATH/cpu.awk $LOGPATH/log_top.txt | sort $sortType >> $LOGPATH/monitor_report.txt
-				cat $LOGPATH/monitor_report.txt
-				enscript $LOGPATH/monitor_report.txt -o - | ps2pdf - $LOGPATH/monitor_report.pdf 
-				cat $LOGPATH/monitor_report.txt | mailx -v -r "virtualcollaboard@gmail.com" -s "CPU-MEM REPORT - VIRTUALCOLLABOARD" -a $LOGPATH/monitor_report.pdf $ADDRESS
+				echo "Process ID     AVG CPU       DESV STD CPU       |       AVG MEM           DESV STD MEM" > $LOGPATH/monitor_report.log
+				top -b -d 5 -n 3 >> $LOGPATH/log_top.log
+				awk -f $ABSPATH/cpu.awk $LOGPATH/log_top.log | sort $sortType >> $LOGPATH/monitor_report.log
+				cat $LOGPATH/monitor_report.log
+				enscript $LOGPATH/monitor_report.log -o - | ps2pdf - $LOGPATH/monitor_report.pdf 
+				cat $LOGPATH/monitor_report.log | mailx -v -r "virtualcollaboard@gmail.com" -s "CPU-MEM REPORT - VIRTUALCOLLABOARD" -a $LOGPATH/monitor_report.pdf $ADDRESS
 				printf 'Mail sent to %s\n' $ADDRESS
 			else
 				printf "Process ID\tAVG CPU\t\tDESV STD CPU\t|\tAVG MEM\t\tDESV STD MEM\n"
-				top -b -d 5 -n 3 > $LOGPATH/log_top.txt
-				awk -f $ABSPATH/cpu.awk $LOGPATH/log_top.txt | sort $sortType 
+				top -b -d 5 -n 3 > $LOGPATH/log_top.log
+				awk -f $ABSPATH/cpu.awk $LOGPATH/log_top.log | sort $sortType 
 			fi
 		fi
 	elif [[ $DISK -eq 1 ]]; then
-        printf "Process ID\tAVG READ\tDESV STD READ\t|\tAVG WRITE\tDESV STD WRITE\t|\tAVG IO\t\tDESV STD IO\n" > $LOGPATH/iotop_report.txt
+        printf "Process ID\tAVG READ\tDESV STD READ\t|\tAVG WRITE\tDESV STD WRITE\t|\tAVG IO\t\tDESV STD IO\n" > $LOGPATH/iotop_report.log
 		iotop -b -d 5 -n 3 >> $LOGPATH/log_iotop.txt
-		awk -f $ABSPATH/disk.awk $LOGPATH/log_iotop.txt | sort $sortType >> $LOGPATH/iotop_report.txt
+		awk -f $ABSPATH/disk.awk $LOGPATH/log_iotop.txt | sort $sortType >> $LOGPATH/iotop_report.log
 	elif [[ $MAIL -eq 1 ]]; then
 		isInstalled
 		if [[ $DISK -eq 1 ]] ; then
-	        printf "Process ID\tAVG READ\tDESV STD READ\t|\tAVG WRITE\tDESV STD WRITE\t|\tAVG IO\t\tDESV STD IO\n" > $LOGPATH/iotop_report.txt
+	        printf "Process ID\tAVG READ\tDESV STD READ\t|\tAVG WRITE\tDESV STD WRITE\t|\tAVG IO\t\tDESV STD IO\n" > $LOGPATH/iotop_report.log
 			iotop -b -d 5 -n 3 >> $LOGPATH/log_iotop.txt
-			awk -f $ABSPATH/disk.awk $LOGPATH/log_iotop.txt | sort $sortType >> $LOGPATH/iotop_report.txt
-			enscript $LOGPATH/iotop_report.txt -o - | ps2pdf - $LOGPATH/iotop_report.pdf 
-			cat $LOGPATH/iotop_report.txt | mailx -v -r "virtualcollaboard@gmail.com" -s "DISK REPORT - VIRTUALCOLLABOARD" -a $LOGPATH/monitor_report.pdf $ADDRESS
+			awk -f $ABSPATH/disk.awk $LOGPATH/log_iotop.txt | sort $sortType >> $LOGPATH/iotop_report.log
+			enscript $LOGPATH/iotop_report.log -o - | ps2pdf - $LOGPATH/iotop_report.pdf 
+			cat $LOGPATH/iotop_report.log | mailx -v -r "virtualcollaboard@gmail.com" -s "DISK REPORT - VIRTUALCOLLABOARD" -a $LOGPATH/monitor_report.pdf $ADDRESS
 			printf 'Mail sent to %s\n' $ADDRESS
 		else
-			echo "Process ID     AVG CPU       DESV STD CPU       |       AVG MEM           DESV STD MEM" > $LOGPATH/monitor_report.txt
-			top -b -d 5 -n 3 >> $LOGPATH/log_top.txt
-			awk -f $ABSPATH/cpu.awk $LOGPATH/log_top.txt | sort $sortType >> $LOGPATH/monitor_report.txt
-			enscript $LOGPATH/monitor_report.txt -o - | ps2pdf - $LOGPATH/monitor_report.pdf 
-			cat $LOGPATH/monitor_report.txt | mailx -v -r "virtualcollaboard@gmail.com" -s "CPU-MEM REPORT - VIRTUALCOLLABOARD" -a $LOGPATH/monitor_report.pdf $ADDRESS
+			echo "Process ID     AVG CPU       DESV STD CPU       |       AVG MEM           DESV STD MEM" > $LOGPATH/monitor_report.log
+			top -b -d 5 -n 3 >> $LOGPATH/log_top.log
+			awk -f $ABSPATH/cpu.awk $LOGPATH/log_top.log | sort $sortType >> $LOGPATH/monitor_report.log
+			enscript $LOGPATH/monitor_report.log -o - | ps2pdf - $LOGPATH/monitor_report.pdf 
+			cat $LOGPATH/monitor_report.log | mailx -v -r "virtualcollaboard@gmail.com" -s "CPU-MEM REPORT - VIRTUALCOLLABOARD" -a $LOGPATH/monitor_report.pdf $ADDRESS
 			printf 'Mail sent to %s\n' $ADDRESS
 		fi
 	fi
