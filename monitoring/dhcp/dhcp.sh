@@ -12,8 +12,13 @@ ABSPATH="/home/vadmin/scripts/monitoring/dhcp" # Production path
 function main()
 {
 	parseArguments "$@"
+
+	if [[ -f $LOGPATH/dhcp_report.txt ]]; then
+		echo "" > $LOGPATH/dhcp_report.txt
+	fi
+
 	if [[ $# -eq 0 ]] || [[ $AUTO -eq 1 ]]; then
-		if [[ $AUTO -eq 1 ]]; then
+		if [[ $AUTO -eq 0 ]]; then
 			printf 'Command ran\n'
 		fi
 		echo '    Date                MAC Address             Host            IP Address      State' > dhcp_report.txt
