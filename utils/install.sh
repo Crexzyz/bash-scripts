@@ -89,7 +89,8 @@ function installScripts()
         scp -q -i $IDENTITY_FILE -r ../monitoring/ vadmin@$host:/home/vadmin/scripts/
 
         echo "Installing cron job for ssh"
-        ssh -i $IDENTITY_FILE vadmin@$host "sudo echo '0 21 * * * root /home/vadmin/scripts/monitoring/ssh/ssh.sh -m virtualcollaboard@gmail.com' > /etc/cron.d/ssh-check"
+        cronCmd='echo ''0 21 * * * root /home/vadmin/scripts/monitoring/ssh/ssh.sh -m virtualcollaboard@gmail.com > /etc/cron.d/ssh-check'
+        ssh -i $IDENTITY_FILE vadmin@$host "sudo bash -c '$cronCmd'"
 	done
 }
 
