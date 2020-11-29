@@ -45,7 +45,7 @@ function main()
 		journalctl _SYSTEMD_UNIT=sshd.service > $LOGPATH/log_ssh.txt
 		awk -f $ABSPATH/ssh.awk $LOGPATH/log_ssh.txt >> $LOGPATH/ssh_report.log
 		enscript $LOGPATH/ssh_report.log -o - | ps2pdf - $LOGPATH/ssh_report.pdf 
-		cat $LOGPATH/ssh_report.log | mailx -v -r "virtualcollaboard@gmail.com" -s "SSH REPORT - VIRTUALCOLLABOARD" -a $LOGPATH/ssh_report.pdf $ADDRESS
+		cat $LOGPATH/ssh_report.log | mailx -r "virtualcollaboard@gmail.com" -s "SSH REPORT - VIRTUALCOLLABOARD" -a $LOGPATH/ssh_report.pdf $ADDRESS
 		printf 'Mail sent to %s\n' $ADDRESS
 	fi
 }
