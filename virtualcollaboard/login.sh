@@ -1,6 +1,7 @@
 #!/bin/bash
 
-HOST=http://172.17.233.251:8080
+POST_HOST=http://localhost:9666
+HOST=http://172.24.132.17
 SESSION_ROUTE=/api/sessions
 DASHBOARD_ROUTE=/spaces
 
@@ -26,7 +27,7 @@ function login()
 
         username=$(echo "${param[username]}@${param[domain]}")
         password=${param[password]}
-        cookie=$(curl -s --request POST --header "Content-Type: application/json" --data '{"email":"'$username'","password":"'$password'"}' $HOST$SESSION_ROUTE | jq -r ".token")
+        cookie=$(curl -s --request POST --header "Content-Type: application/json" --data '{"email":"'$username'","password":"'$password'"}' $POST_HOST$SESSION_ROUTE | jq -r ".token")
 
         if [[ $cookie = "" ]]; then
                 page
