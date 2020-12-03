@@ -66,6 +66,8 @@ function authLdap()
                 if [[ $memberOf = "" ]]; then
                         ldapMessage="Error: el usuario $user no está autorizado a usar el servicio"
                 fi
+        elif [[ $ldapError -eq 49 ]]; then
+                ldapMessage="Error: credenciales incorrectas"
         elif [[ $ldapError -eq 53 ]]; then
                 ldapMessage="Error: muchos intentos de inicio de sesión fallidos, contacte a un administrador"
         else
@@ -100,7 +102,7 @@ function login()
                         if [[ $cookie = "Not Found" ]]; then
                                 errorPage "Error: el usuario no está registrado en la base de datos de Spacedeck"
                         else
-                                echo "Set-Cookie: sdsession=$parsedCookie; Expires=; HttpOnly"
+                                echo "Set-Cookie: sdsession=$parsedCookie; Expires=; HttpOnly; Path=/"
                                 echo "Location: $HOST$DASHBOARD_ROUTE"
                                 echo ''
                         fi
