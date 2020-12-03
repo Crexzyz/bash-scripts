@@ -29,9 +29,9 @@ function sanitize()
         sanitized=$(echo "$1" | sed "s/'//g" | sed 's/\$//g;s/`//g;s/\*//g;s/\\//g;s/--//g')
         sanitized=$(echo "$sanitized" | sed -e :a -e 's/<[^>]*>//g;/</N;//ba')
     else
-                if [[ $sanError -eq 0 ]]; then
-                sanError=1
-                fi
+        if [[ $sanError -eq 0 ]]; then
+            sanError=1
+        fi
     fi
 }
 

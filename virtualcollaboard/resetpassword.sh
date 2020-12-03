@@ -1,10 +1,33 @@
 #!/bin/bash
 
-HOST=http://172.17.233.251
-SPACEDECK_PORT=8080
+POST_HOST=http://localhost:9666
+HOST=https://172.24.132.17
 RESET_ROUTE=/api/users/password_reset_requests
-RESET_PAGE=/reset
-LOGIN_PAGE=/login
+RESET_PAGE=/u/reset
+LOGIN_PAGE=/u/login
+DB_PATH=/data/spacedeck/nfs/db/database.sqlite
+
+function sanitize()
+{
+    if [[ ! "$1" = "" ]]; then
+        # The following lines will prevent XSS and check for valide JSON-Data.
+        # But these Symbols need to be encoded somehow before sending to this script
+        sanitized=$(echo "$1" | sed "s/'//g" | sed 's/\$//g;s/`//g;s/\*//g;s/\\//g;s/--//g')
+        sanitized=$(echo "$sanitized" | sed -e :a -e 's/<[^>]*>//g;/</N;//ba')
+    else
+        if [[ $sanError -eq 0 ]]; then
+            sanError=1
+        fi
+    fi
+}
+
+function getPostInput()
+{
+    sanError=0
+    # Sanitize input
+    sanitize "${param[t]}"
+    token="$sanitized"
+}
 
 function post()
 {
@@ -19,7 +42,7 @@ function post()
     password=${param[pass]}
 
     # Post change to spacedeck
-    curl -s --request POST --header "Content-Type: application/json" --data '{"password":"'$password'"}' $HOST:$SPACEDECK_PORT$RESET_ROUTE/$token/confirm > /dev/null
+    curl -s --request POST --header "Content-Type: application/json" --data '{"password":"'$password'"}' $POST_HOST$RESET_ROUTE/$token/confirm > /dev/null
 
     echo "Location: $HOST$LOGIN_PAGE"
     echo ''
@@ -33,25 +56,20 @@ function get()
         param["$key"]=$value
     done <<< "$STRING&"
 
-    if [[ -v param[t] ]]; then
-        # removes some symbols (like \ * ` $ ') to prevent XSS with Bash and SQL.
-        token=$(echo "${param[t]}" | sed "s/'//g" | sed 's/\$//g;s/`//g;s/\*//g;s/\\//g;s/--//g')
-        # removes most html declarations to prevent XSS within documents
-        token=$(echo "$token" | sed -e :a -e 's/<[^>]*>//g;/</N;//ba')
+    sanError=0
+    # Sanitize input
+    sanitize "${param[t]}"
+    token="$sanitized"
+
+    if [[ $sanError -eq 0 ]]; then
+        # Check if code exists in db
+        mail=$(sqlite3 $DB_PATH -cmd '' 'select email from users where password_reset_token = "'$token'";')
+        echo ''
+        sed "s/{mail}/$mail/g;s/{t}/$token/g" /var/www/templates/ResetInput.html
     else
-        token=";aa"
-    fi
-
-    # Check if code exists in db
-    mail=$(sqlite3 /home/root/spacedeck/spacedeck-open/nfs/db/database.sqlite -cmd '' 'select email from users where password_reset_token = "'$token'";')
-
-
-    if [[ $mail = "" ]]; then
         echo "Location: $HOST$RESET_PAGE"
         echo ''
-    else
-        echo ''
-        sed "s/{mail}/$mail/g;s/{t}/$token/g" ../../templates/ResetInput.html
+
     fi
 }
 
