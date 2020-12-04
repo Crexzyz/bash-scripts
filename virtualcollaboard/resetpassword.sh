@@ -27,6 +27,9 @@ function getPostInput()
     # Sanitize input
     sanitize "${param[t]}"
     token="$sanitized"
+
+    sanitize "${param[pass]}"
+    password="$sanitized"
 }
 
 function post()
@@ -38,14 +41,24 @@ function post()
         param["$key"]=$value
     done <<< "${QUERY_STRING}&"
 
-    token=${param[t]}
-    password=${param[pass]}
+    getPostInput
 
-    # Post change to spacedeck
-    curl -s --request POST --header "Content-Type: application/json" --data '{"password":"'$password'"}' $POST_HOST$RESET_ROUTE/$token/confirm > /dev/null
+    if [[ $sanError -eq 0 ]]; then
+        ipaUsername=$(sqlite3 $DB_PATH -cmd '' 'select nickname from users where password_reset_token = "'$token'";')
+        # Post change to spacedeck
+        curl -s --request POST --header "Content-Type: application/json" --data '{"password":"'$password'"}' $POST_HOST$RESET_ROUTE/$token/confirm > /dev/null
 
-    echo "Location: $HOST$LOGIN_PAGE"
-    echo ''
+        # Post change to FreeIPA
+
+        echo $password | ipa user-mod $ipaUsername --password > /dev/null
+
+        echo "Location: $HOST$LOGIN_PAGE"
+        echo ''
+    else
+        echo ''
+        echo "Datos incompletos"
+    fi
+
 }
 
 function get()
