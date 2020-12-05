@@ -10,7 +10,7 @@ function getTokensFromDb()
         # Get accounts, lock table while reading
         tokens=$(sqlite3 $DB_PATH -cmd '' 'begin;
          select token from resetrequests where status = 0;
-         update resetrequests set status = 0 where status = 0;
+         update resetrequests set status = 1 where status = 0;
          commit;')
 }
 
