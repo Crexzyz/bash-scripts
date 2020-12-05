@@ -33,7 +33,7 @@ function sanitize()
 
 function prepareMessage()
 {
-    resetLinkMessage=$(printf "User %s has requested a password reset.\nReset token: %s" $1 $2)
+    resetLinkMessage=$(printf "Hola %s\n\nHaga click en este enlace para reiniciar su clave de acceso:\n$HOST/u/resetpassword?t=%s\n\n- El equipo de Virtualcollaboard" $1 $2)
 }
 
 function getInput()
@@ -71,7 +71,7 @@ function login()
                 prepareMessage "$username" "$token"
 
                 # Send mail to user
-                echo "$resetLinkMessage" | mailx -r "virtualcollaboard@gmail.com" -S 'charset=UTF-8' -s "Password reset request" "virtualcollaboard@gmail.com"
+                echo "$resetLinkMessage" | mailx -r "virtualcollaboard@gmail.com" -S 'charset=UTF-8' -s "Virtualcollaboard - Reiniciar clave de acceso" $email
             fi
 
             notify
