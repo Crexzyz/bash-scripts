@@ -1,7 +1,7 @@
 #!/bin/bash
 
 POST_HOST=http://localhost:9666
-HOST=https://172.24.132.17
+HOST=https://172.24.132.55
 RESET_ROUTE=/api/users/password_reset_requests
 DB_PATH=/data/spacedeck/nfs/db/database.sqlite
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 POST_HOST=http://localhost:9666
-HOST=http://172.24.132.17
+HOST=http://172.24.132.55
 SESSION_ROUTE=/api/sessions
 DASHBOARD_ROUTE=/spaces
 ERROR_TEMPLATE='<div class="mx-auto shadow-sm p-3 w-50 alert alert-danger" role="alert">{errmess}</div>'
